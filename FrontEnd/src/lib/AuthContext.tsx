@@ -73,6 +73,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else if (!formattedPhone.startsWith('254')) {
         formattedPhone = '254' + formattedPhone;
       }
+    
+      const normalizedAccountType: 'PERSONAL' | 'BUSINESS' =
+      accountType?.toUpperCase() === 'BUSINESS' ? 'BUSINESS' : 'PERSONAL';
 
       const result = await authService.register({
         email,
@@ -80,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         username,
         fullName,
         phone: formattedPhone,
-        accountType: accountType.toUpperCase() as 'PERSONAL' | 'BUSINESS',
+        accountType: safeAccountType,
       });
 
       setUser(result.user);
