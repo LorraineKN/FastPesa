@@ -1,5 +1,6 @@
 package org.NovaGroup.EmergencyWallet.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -56,40 +57,48 @@ public class MpesaService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public String getAccessToken() throws IOException {
-        // Check if token is still valid
+        // Return cached token if still valid
         if (accessToken != null && tokenExpiry != null && LocalDateTime.now().isBefore(tokenExpiry)) {
+            log.debug("Returning cached access token");
             return accessToken;
         }
 
         String authUrl = "sandbox".equalsIgnoreCase(environment) ? SANDBOX_AUTH_URL : PROD_AUTH_URL;
         String credentials = Base64.getEncoder().encodeToString((consumerKey + ":" + consumerSecret).getBytes(StandardCharsets.UTF_8));
 
-        log.debug(credentials);
+        log.debug("Encoded credentials: {}", credentials);
 
         Request request = new Request.Builder()
-            .url(authUrl)
-            .header("Authorization", "Basic " + credentials)
-            .build();
-        log.debug(request.toString());
+                .url(authUrl)
+                .header("Authorization", "Basic " + credentials)
+                .header("User-Agent", "Java/OkHttp") // important for sandbox
+                .build();
+        log.debug("Auth request: {}", request);
 
         try (Response response = client.newCall(request).execute()) {
+            log.debug("HTTP response code: {}", response.code());
+
             if (!response.isSuccessful()) {
-                log.error(response.toString());
-                log.error(consumerKey);
-                log.error("Failed to get M-Pesa access token. Status: {}", response.code());
+                log.error("Failed to get M-Pesa access token. Status: {}, Response: {}", response.code(), response.body() != null ? response.body().string() : "empty");
                 throw new IOException("Failed to authenticate with Daraja API");
             }
 
-            log.debug("Token Response ",response);
+            String responseBodyStr = response.body() != null ? response.body().string() : "";
+            log.debug("Token response body: {}", responseBodyStr);
 
-            Map<String, Object> responseBody = objectMapper.readValue(response.body().string(), Map.class);
-            accessToken = (String) responseBody.get("access_token");
-            
-            // Token typically valid for 3600 seconds, set expiry to 55 minutes to be safe
-            tokenExpiry = LocalDateTime.now().plusMinutes(55);
-            
+            // Parse JSON safely
+            Map<String, Object> responseBody = objectMapper.readValue(responseBodyStr, new TypeReference<Map<String, Object>>() {});
+            Object tokenObj = responseBody.get("access_token");
+            if (tokenObj instanceof String) {
+                accessToken = (String) tokenObj;
+            } else {
+                log.error("access_token not found or not a string in response!");
+                throw new IOException("Invalid access token response");
+            }
+
+            tokenExpiry = LocalDateTime.now().plusMinutes(55); // buffer before actual expiry
             log.info("M-Pesa access token obtained successfully");
-            log.debug("Access Token : ",accessToken);
+            log.debug("Access Token: {}", accessToken);
             return accessToken;
         }
     }
@@ -118,23 +127,26 @@ public class MpesaService {
         payload.put("TransactionDesc", "Emergency Wallet Deposit");
 
         RequestBody body = RequestBody.create(
-            objectMapper.writeValueAsString(payload),
-            MediaType.parse("application/json")
+                objectMapper.writeValueAsString(payload),
+                MediaType.parse("application/json")
         );
 
         Request request = new Request.Builder()
-            .url(url)
-            .header("Authorization", "Bearer " + token)
-            .post(body)
-            .build();
+                .url(url)
+                .header("Authorization", "Bearer " + token)
+                .header("User-Agent", "Java/OkHttp") // important for sandbox
+                .post(body)
+                .build();
 
         try (Response response = client.newCall(request).execute()) {
-            Map<String, Object> responseBody = objectMapper.readValue(response.body().string(), Map.class);
+            String responseBodyStr = response.body() != null ? response.body().string() : "";
+            log.debug("STK Push response body: {}", responseBodyStr);
+
+            Map<String, Object> responseBody = objectMapper.readValue(responseBodyStr, new TypeReference<Map<String, Object>>() {});
             log.info("STK Push initiated. Response code: {}", responseBody.get("ResponseCode"));
             return responseBody;
         }
     }
-
     public Map<String, Object> simulateStkPush(String phoneNumber, long amount, String accountReference) {
         log.info("[DEMO MODE] Simulating STK Push. Phone: {}, Amount: {}", phoneNumber, amount);
         
