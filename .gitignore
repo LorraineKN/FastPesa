@@ -61,9 +61,10 @@ Desktop.ini
 *.key
 *.crt
 
-# Database dumps
-*.sql
+# Database dumps (but keep migrations)
 *.dump
+!/database/migrations/*.sql
+!/database/seeds/*.sql
 
 # Misc
 .env.backup

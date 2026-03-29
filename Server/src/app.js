@@ -2,7 +2,7 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
-const { errorHandler } = require('./middlewares/errorMiddleware');
+const { errorHandler, notFound } = require('./controllers/errorMiddleware');
 const logger = require('./utils/logger');
 
 // Routes
@@ -38,6 +38,7 @@ app.use('/api/pay', paymentRoutes);
 app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
 
 // Error handling (must be last)
+app.use(notFound);
 app.use(errorHandler);
 
 module.exports = app;
