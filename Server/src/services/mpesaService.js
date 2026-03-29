@@ -2,6 +2,87 @@ const axios = require('axios');
 const crypto = require('crypto');
 const env = require('../config/env');
 const logger = require('../utils/logger');
+const { Pool } = require('pg');
+
+// Database pool
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/emergency_wallet'
+});
+
+// Demo mode flag - set to true for development/testing
+const DEMO_MODE = process.env.MPESA_DEMO_MODE !== 'false';
+
+/**
+ * Generate M-Pesa transaction reference
+ */
+const generateMpesaReference = () => {
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  return `MJ${timestamp.toString().slice(-6)}${random}`;
+};
+
+/**
+ * Simulate C2B (Customer to Business) transaction
+ */
+const simulateC2B = ({ paybillNumber, accountNumber, amount }) => {
+  if (!DEMO_MODE) return;
+
+  const reference = generateMpesaReference();
+  logger.info(`[M-Pesa Demo] C2B Simulation:`, {
+    paybillNumber,
+    accountNumber,
+    amount,
+    reference
+  });
+
+  // Simulate SMS confirmation
+  setTimeout(() => {
+    logger.info(`[M-Pesa Demo] SMS: KES ${amount} paid to ${paybillNumber} Account ${accountNumber}. Ref: ${reference}`);
+  }, 2000);
+};
+
+/**
+ * Simulate B2C (Business to Customer) transaction
+ */
+const simulateB2C = ({ tillNumber, amount }) => {
+  if (!DEMO_MODE) return;
+
+  const reference = generateMpesaReference();
+  logger.info(`[M-Pesa Demo] B2C Simulation:`, {
+    tillNumber,
+    amount,
+    reference
+  });
+
+  // Simulate SMS confirmation
+  setTimeout(() => {
+    logger.info(`[M-Pesa Demo] SMS: KES ${amount} paid to Till ${tillNumber}. Ref: ${reference}`);
+  }, 2000);
+};
+
+/**
+ * Simulate STK Push transaction
+ */
+const simulateSTKPush = ({ phoneNumber, amount }) => {
+  if (!DEMO_MODE) return;
+
+  const reference = generateMpesaReference();
+  logger.info(`[M-Pesa Demo] STK Push Simulation:`, {
+    phoneNumber,
+    amount,
+    reference
+  });
+
+  // Simulate STK push prompt
+  setTimeout(() => {
+    logger.info(`[M-Pesa Demo] STK Push: Enter PIN to send KES ${amount} to ${phoneNumber}`);
+  }, 1000);
+
+  // Simulate SMS confirmation
+  setTimeout(() => {
+    logger.info(`[M-Pesa Demo] SMS: KES ${amount} sent to ${phoneNumber}. Ref: ${reference}`);
+  }, 3000);
+};
 
 class MpesaService {
   constructor() {
@@ -87,3 +168,10 @@ class MpesaService {
 }
 
 module.exports = new MpesaService();
+
+// Export additional functions for frontend compatibility
+module.exports.DEMO_MODE = DEMO_MODE;
+module.exports.simulateC2B = simulateC2B;
+module.exports.simulateB2C = simulateB2C;
+module.exports.simulateSTKPush = simulateSTKPush;
+module.exports.generateMpesaReference = generateMpesaReference;

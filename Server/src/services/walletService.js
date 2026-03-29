@@ -4,9 +4,40 @@ const { getRedis } = require('../config/redis');
 const env = require('../config/env');
 const AuditLog = require('../models/AuditLog');
 const logger = require('../utils/logger');
+const { Pool } = require('pg');
+
+// Database pool for direct queries
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/emergency_wallet'
+});
 
 class WalletService {
   async getBalance(userId) {
+    // Try new schema first
+    try {
+      const result = await pool.query(
+        'SELECT * FROM wallets WHERE user_id = $1',
+        [userId]
+      );
+      
+      if (result.rows.length > 0) {
+        const wallet = result.rows[0];
+        return { 
+          id: wallet.id,
+          balance: parseFloat(wallet.balance), 
+          currency: wallet.currency || 'KES',
+          wallet_name: wallet.wallet_name || 'InstantAid Wallet',
+          is_active: wallet.is_active,
+          is_demo_funded: wallet.is_demo_funded,
+          dailyLimit: 100000, // Default limits for compatibility
+          monthlyLimit: 1000000
+        };
+      }
+    } catch (error) {
+      logger.warn('New wallet schema query failed, trying legacy:', error.message);
+    }
+
+    // Fallback to legacy schema
     const wallet = await Wallet.findByUserId(userId);
     if (!wallet) throw new Error('Wallet not found');
     return { 
@@ -14,6 +45,101 @@ class WalletService {
       dailyLimit: parseFloat(wallet.daily_limit), 
       monthlyLimit: parseFloat(wallet.monthly_limit) 
     };
+  }
+
+  async getWalletSnapshot(userId) {
+    try {
+      const result = await pool.query('SELECT * FROM get_wallet_snapshot($1)', [userId]);
+      return result.rows[0].get_wallet_snapshot;
+    } catch (error) {
+      logger.error('getWalletSnapshot error:', error);
+      throw error;
+    }
+  }
+
+  async ensureDemoWallet(userId, fullName, email, username, accountType = 'personal') {
+    try {
+      const result = await pool.query('SELECT * FROM ensure_demo_wallet($1, $2, $3, $4, $5)', [
+        userId, fullName, email, username, accountType
+      ]);
+      return result.rows[0].ensure_demo_wallet;
+    } catch (error) {
+      logger.error('ensureDemoWallet error:', error);
+      throw error;
+    }
+  }
+
+  async processDeposit(userId, amount, description = 'Wallet deposit') {
+    try {
+      const result = await pool.query('SELECT * FROM process_deposit($1, $2, $3)', [
+        userId, amount, description
+      ]);
+      return result.rows[0].process_deposit;
+    } catch (error) {
+      logger.error('processDeposit error:', error);
+      throw error;
+    }
+  }
+
+  async processWithdrawal(userId, amount, phoneNumber = null, description = 'Wallet withdrawal') {
+    try {
+      const result = await pool.query('SELECT * FROM process_withdrawal($1, $2, $3, $4)', [
+        userId, amount, phoneNumber, description
+      ]);
+      return result.rows[0].process_withdrawal;
+    } catch (error) {
+      logger.error('processWithdrawal error:', error);
+      throw error;
+    }
+  }
+
+  async processWalletTransfer(senderUserId, receiverWalletId, amount) {
+    try {
+      const result = await pool.query('SELECT * FROM process_wallet_transfer($1, $2, $3)', [
+        senderUserId, receiverWalletId, amount
+      ]);
+      return result.rows[0].process_wallet_transfer;
+    } catch (error) {
+      logger.error('processWalletTransfer error:', error);
+      throw error;
+    }
+  }
+
+  async resolveWalletByUsername(username) {
+    try {
+      const cleanedUsername = username.trim().toLowerCase();
+      
+      const profileQuery = await pool.query(
+        'SELECT user_id, full_name, username FROM profiles WHERE username = $1',
+        [cleanedUsername]
+      );
+
+      if (profileQuery.rows.length === 0) {
+        return null;
+      }
+
+      const profile = profileQuery.rows[0];
+
+      const walletQuery = await pool.query(
+        'SELECT id, user_id FROM wallets WHERE user_id = $1',
+        [profile.user_id]
+      );
+
+      if (walletQuery.rows.length === 0) {
+        return null;
+      }
+
+      const wallet = walletQuery.rows[0];
+
+      return {
+        walletId: wallet.id,
+        userId: wallet.user_id,
+        fullName: profile.full_name || profile.username || 'User'
+      };
+    } catch (error) {
+      logger.error('resolveWalletByUsername error:', error);
+      throw error;
+    }
   }
 
   async updateBalanceAtomic(userId, amountDelta, transactionType, description, ipAddress) {
@@ -70,7 +196,7 @@ class WalletService {
     const wallet = await Wallet.findByUserId(userId);
     if (!wallet) throw new Error('Wallet not found');
 
-    // Refund the money
+    // Refund money
     const newBalance = parseFloat(wallet.balance) + amount;
     await Wallet.updateBalance(wallet.id, newBalance);
 

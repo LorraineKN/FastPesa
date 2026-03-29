@@ -12,6 +12,8 @@ const walletRoutes = require('./routes/walletRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const mpesaRoutes = require('./routes/mpesaRoutes');
+const supabaseAuthRoutes = require('./routes/supabaseAuthRoutes');
+const supabaseRoutes = require('./routes/supabaseRoutes');
 
 const app = express();
 
@@ -35,6 +37,8 @@ app.use('/api/wallet', walletRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/pay', paymentRoutes);
 app.use('/api/mpesa', mpesaRoutes);
+app.use('/auth/v1', supabaseAuthRoutes);
+app.use('/rest/v1', supabaseRoutes);
 
 // Health check
 app.get('/health', (req, res) => res.status(200).json({ 
