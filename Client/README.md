@@ -2,7 +2,7 @@
 
 React frontend for the Emergency Wallet System - a phone-independent M-Pesa wallet that allows secure access to funds using just a username and PIN.
 
-## Features
+## 🚀 Features
 
 - **Authentication**: Secure login/registration with PIN-based authentication
 - **Dashboard**: Real-time wallet balance and quick actions
@@ -12,7 +12,7 @@ React frontend for the Emergency Wallet System - a phone-independent M-Pesa wall
 - **Settings**: Manage account and change PIN
 - **Responsive Design**: Works on all devices
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 - **React 18** - UI framework
 - **Vite** - Build tool and dev server
@@ -22,41 +22,32 @@ React frontend for the Emergency Wallet System - a phone-independent M-Pesa wall
 - **Tailwind CSS** - Styling
 - **React Hot Toast** - Notifications
 
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
-
 - Node.js 18+
 - npm or yarn
 
 ### Installation
-
-1. Install dependencies:
 ```bash
 npm install
-```
-
-2. Start development server:
-```bash
 npm run dev
 ```
 
-3. Open http://localhost:3000 in your browser
-
 ### Environment Variables
-
-Create a `.env` file in the root directory:
-
+Create a `.env` file:
 ```env
 VITE_API_URL=http://localhost:5000/api
 ```
 
-## Project Structure
+### Access
+Open http://localhost:3000 in your browser
 
+## 📁 Project Structure
 ```
 src/
 ├── components/          # Reusable components
-│   ├── UI/             # Basic UI components (Button, Input)
+│   ├── UI/             # Basic UI components
 │   └── wallet/         # Wallet-specific components
 ├── pages/              # Page components
 ├── services/           # API services
@@ -66,37 +57,34 @@ src/
 └── styles/             # Global styles
 ```
 
-## Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-
-## API Integration
-
-The frontend connects to the backend API at `/api` endpoints:
-
-- Authentication: `/auth/*`
-- Wallet: `/wallet/*`
-- Payments: `/pay/*`
-- Transactions: `/transactions/*`
-
-## Security Features
-
+## 🔐 Security Features
 - JWT token authentication
 - Automatic logout on token expiry
 - PIN masking and validation
 - Input sanitization
 - HTTPS only in production
 
-## Contributing
+## 📱 API Integration
+The frontend connects to the backend API at `/api` endpoints:
+- Authentication: `/auth/*`
+- Wallet: `/wallet/*`
+- Payments: `/pay/*`
+- Transactions: `/transactions/*`
 
-1. Follow the existing code style
-2. Use semantic components
-3. Test on multiple screen sizes
-4. Validate all user inputs
+## 🧪 Testing
+```bash
+npm run test
+npm run lint
+```
 
-## License
+## 📦 Build
+```bash
+npm run build
+npm run preview
+```
 
+## 🏆 Hackathon Submission
+Built for the M-Pesa Africa x GOMYCODE Kenya "Money in Motion" Hackathon 2026.
+
+## 📄 License
 MIT License

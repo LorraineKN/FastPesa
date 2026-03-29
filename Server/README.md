@@ -1,17 +1,14 @@
-# Emergency Wallet - M-Pesa Hackathon Project
+# Emergency Wallet Backend - M-Pesa Hackathon Project
 
-## Problem Statement
-In many developing regions, access to traditional banking services remains limited, while mobile money platforms like M-Pesa have become ubiquitous. However, current mobile money solutions often require users to have the physical device and SIM card registered to their account, creating barriers for emergency situations where family members or trusted contacts need access to funds when the primary account holder is unavailable.
+## 🚀 Money in Motion Hackathon 2026
 
-## Solution Overview
-Emergency Wallet is a phone-independent M-Pesa wallet system that allows secure, delegated access to mobile money services. Our solution addresses the **Community Impact** challenge area by enabling:
+## 📱 Problem Statement
+In Kenya and across Africa, M-Pesa has revolutionized financial access, but users face critical barriers during emergencies when they don't have access to their registered phone or SIM card.
 
-- **Emergency Fund Access**: Family members can access funds during emergencies without needing the primary account holder's phone
-- **Secure Delegation**: Multi-factor authentication with PIN-based security and audit trails
-- **Transaction Limits**: Built-in daily and monthly limits to prevent abuse
-- **Real-time Monitoring**: Complete audit logs and instant notifications for all transactions
+## 💡 Solution
+Emergency Wallet provides phone-independent access to M-Pesa funds using only a username and PIN, enabling secure financial access anytime, anywhere.
 
-## Key Features
+## 🌟 Key Features
 - JWT-based authentication with refresh tokens
 - Secure PIN-based wallet access
 - Daily/monthly transaction limits (configurable)
@@ -21,7 +18,7 @@ Emergency Wallet is a phone-independent M-Pesa wallet system that allows secure,
 - Rate limiting and brute-force protection
 - RESTful API with comprehensive validation
 
-## Technology Stack
+## 🛠️ Technology Stack
 - **Backend**: Node.js with Express.js
 - **Database**: PostgreSQL with raw SQL queries
 - **Cache/Queue**: Redis with Bull job queues
@@ -31,68 +28,42 @@ Emergency Wallet is a phone-independent M-Pesa wallet system that allows secure,
 - **Containerization**: Docker & docker-compose
 - **Logging**: Winston with file and console outputs
 
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login with PIN
-- `POST /api/auth/refresh` - Refresh access token
-- `POST /api/auth/logout` - User logout
-
-### Wallet Management
-- `GET /api/wallet` - Get wallet details and balance
-- `POST /api/wallet/recharge` - Recharge wallet via M-Pesa
-
-### Payments
-- `POST /api/pay/phone` - Send money to phone number
-
-### Transactions
-- `GET /api/transactions` - Get transaction history with pagination
-
-## Setup & Installation
+## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 18+
 - Docker & docker-compose
 - Git
 
-### Quick Start with Docker
-1. Clone the repository:
+### Docker Setup (Recommended)
 ```bash
+# Clone and setup
 git clone <repository-url>
 cd emergency-wallet/Server
-```
 
-2. Set up environment variables:
-```bash
+# Environment setup
 cp .env.example .env
 # Edit .env with your M-Pesa API credentials
-```
 
-3. Start all services:
-```bash
+# Start services
 docker-compose up -d
-```
 
-4. Run database migrations:
-```bash
+# Run migrations
 docker exec -it emergency-wallet_backend_1 npm run migrate
-```
 
-5. API is available at `http://localhost:5000`
+# API available at http://localhost:5000
+```
 
 ### Manual Setup
-1. Install dependencies:
 ```bash
 npm install
+# Setup PostgreSQL and Redis
+# Configure .env
+npm run migrate
+npm run dev
 ```
 
-2. Set up PostgreSQL and Redis
-3. Configure environment variables in `.env`
-4. Run migrations: `npm run migrate`
-5. Start server: `npm run dev`
-
-## Environment Variables
+## 📋 Environment Variables
 ```env
 # Server Configuration
 NODE_ENV=development
@@ -127,16 +98,31 @@ MONTHLY_LIMIT=50000
 MAX_TRANSACTION_AMOUNT=5000
 ```
 
-## Live Demo
-**Backend API**: https://emergency-wallet-api.herokuapp.com  
-**API Documentation**: https://emergency-wallet-api.herokuapp.com/health  
+## 📱 API Endpoints
 
-## Test Accounts
-- **Username**: testuser
-- **PIN**: 1234
-- **Phone**: +254712345678
+### Authentication
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login with PIN
+- `POST /api/auth/refresh` - Refresh access token
+- `POST /api/auth/logout` - User logout
 
-## Security Features
+### Wallet Management
+- `GET /api/wallet` - Get wallet details and balance
+- `POST /api/wallet/recharge` - Recharge wallet via M-Pesa
+- `GET /api/wallet/limits` - Get transaction limits
+
+### Payments
+- `POST /api/pay/phone` - Send money to phone number
+
+### Transactions
+- `GET /api/transactions` - Get transaction history with pagination
+
+### User Management
+- `GET /api/user/profile` - Get user profile
+- `PUT /api/user/profile` - Update user profile
+- `GET /api/user/preferences` - Get user preferences
+
+## 🔒 Security Features
 - PIN-based authentication with bcrypt hashing
 - JWT tokens with refresh mechanism
 - Rate limiting (100 requests per 15 minutes)
@@ -145,36 +131,47 @@ MAX_TRANSACTION_AMOUNT=5000
 - Input validation with Joi schemas
 - SQL injection prevention with parameterized queries
 
-## Team Members
-1. **Team Lead** - Backend Architecture & API Design
+## 🧪 Testing
+```bash
+npm test
+npm run test:watch
+npm run test:coverage
+```
+
+## 📊 Database Schema
+- **users**: User accounts and authentication
+- **wallets**: Wallet balances and limits
+- **transactions**: Complete financial audit trail
+- **audit_logs**: Security and access logging
+- **sessions**: User session management
+
+## 🔌 M-Pesa Integration
+- **STK Push**: For wallet recharges (CustomerPayBillOnline)
+- **B2C API**: For sending money to phone numbers
+- **Callback Handling**: Secure transaction status updates
+- **Mock Mode**: Testing without real API credentials
+
+## 📈 Performance & Monitoring
+- Structured logging with Winston
+- Request/response logging
+- Error tracking
+- Performance metrics
+- Health check endpoints
+
+## 🏆 Hackathon Submission
+Built for the M-Pesa Africa x GOMYCODE Kenya "Money in Motion" Hackathon 2026.
+
+**Challenge Area**: Community Impact
+
+## 👥 Team Members
+1. **Backend Lead** - Backend Architecture & API Design
 2. **Backend Developer** - Database & Authentication
 3. **Integration Specialist** - M-Pesa API Integration
 4. **Security Engineer** - Security Implementation
 5. **DevOps Engineer** - Docker & Deployment
 
-## Project Repository
-https://github.com/your-team/emergency-wallet
+## 📄 License
+MIT License
 
-## About This Project
-Emergency Wallet was built for the M-Pesa Africa x GOMYCODE Kenya "Money in Motion" Hackathon. Our solution addresses the critical need for emergency fund access in communities where traditional banking is limited but mobile money is prevalent. The system ensures secure, audited access to funds while maintaining strict controls to prevent misuse.
-
-## Future Enhancements
-- Mobile application (React Native)
-- Web dashboard for administrators
-- SMS notifications for transactions
-- Multi-currency support
-- Advanced fraud detection algorithms
-- Biometric authentication options
-
-## Contributing
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-MIT License - see LICENSE file for details
-
-## Contact
-For questions or support, please contact our team at emergency-wallet@example.com
+## 📞 Contact
+For questions or support, please contact our team at emergency-wallet-hackathon@example.com
