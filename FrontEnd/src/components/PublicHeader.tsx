@@ -26,7 +26,7 @@ const PublicHeader: React.FC = () => {
           {loading ? (
             <div className="h-10 w-24 bg-muted animate-pulse rounded-lg" />
           ) : user ? (
-            <div className="flex items-center gap-3">
+            <>
               <span className="text-sm text-muted-foreground hidden sm:inline">
                 Welcome, {user.user_metadata?.full_name?.split(' ')[0] || 'User'}
               </span>
@@ -34,7 +34,7 @@ const PublicHeader: React.FC = () => {
               <Button variant="ghost" size="icon" onClick={handleSignOut} title="Sign Out">
                 <LogOut className="w-4 h-4" />
               </Button>
-            </div>
+            </>
           ) : (
             <>
               <Button variant="ghost" onClick={() => navigate('/login')}>Sign In</Button>

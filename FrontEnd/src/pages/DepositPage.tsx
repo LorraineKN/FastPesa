@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiClient } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,10 +28,10 @@ const DepositPage = () => {
     if (user) {
       Promise.all([
         getWalletSnapshot(user.id),
-        apiClient.from('profiles').select('*').eq('user_id', user.id).single(),
+        supabase.from('profiles').select('*').eq('user_id', user.id).single(),
       ]).then(([walletResponse, p]) => {
         if (walletResponse?.wallet) setWallet(walletResponse.wallet);
-        if (p) setProfile(p);
+        if (p.data) setProfile(p.data);
       });
     }
   }, [user]);
@@ -43,7 +43,7 @@ const DepositPage = () => {
     const result = await depositToWallet(user!.id, Number(amount), 'Wallet deposit');
     setLoading(false);
     if (result.status === 'success') {
-      toast({ title: 'Deposit Successful', description: `KES ${Number(amount).toLocaleString()} deposited. Ref: ${result.ref}` });
+      toast({ title: 'Deposit Successful', description: `KES ${Number(amount).toLocaleString()} deposited. Ref: ${result.refId}` });
       setTimeout(() => {
         toast({ title: '📱 SMS Delivered', description: 'Deposit confirmation message sent successfully.' });
       }, 1500);

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { apiClient } from '@/lib/api';
-import { Wallet, Home, ArrowLeftRight, History, Settings, LogOut, Menu, CreditCard, Bell, Plus, Minus, User } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Wallet, Home, ArrowLeftRight, History, Settings, LogOut, Menu, CreditCard, Bell, Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface DashboardLayoutProps {
@@ -17,7 +17,6 @@ const navItems = [
   { path: '/dashboard/mpesa', label: 'M-Pesa', icon: CreditCard },
   { path: '/dashboard/transactions', label: 'History', icon: History },
   { path: '/dashboard/inbox', label: 'Inbox', icon: Bell },
-  { path: '/dashboard/profile', label: 'Profile', icon: User },
   { path: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -28,18 +27,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const fetchUnreadCount = async () => {
-    if (!user) return;
-    try {
-      const notifications = await apiClient.from('notifications').select('id').eq('user_id', user.id).eq('is_read', false);
-      setUnreadCount(Array.isArray(notifications) ? notifications.length : 0);
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error);
-    }
-  };
-
   useEffect(() => {
-    fetchUnreadCount();
+    if (user) {
+      supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_read', false).then(({ count }) => {
+        setUnreadCount(count || 0);
+      });
+    }
   }, [user, location.pathname]);
 
   const handleSignOut = async () => {

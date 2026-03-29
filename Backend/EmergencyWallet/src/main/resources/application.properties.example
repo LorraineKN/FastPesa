@@ -1,0 +1,41 @@
+spring.application.name=EmergencyWallet
+
+# Server Configuration
+server.port=8080
+
+#spring.config.import=dotenv
+
+# Database Configuration
+spring.datasource.url=jdbc:postgresql://localhost:5432/emergency_wallet?sslmode=disable
+spring.datasource.username=${DB_USERNAME:postgres}
+spring.datasource.password=db_password
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA Configuration
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.format_sql=true
+
+# JWT Configuration
+jwt.secret=${JWT_SECRET:your-secret-key-change-in-production-very-important-secure-key-at-least-32-chars}
+jwt.expiration=${JWT_EXPIRATION:86400000}
+
+
+
+# M-Pesa Daraja API Configuration
+mpesa.consumer-key=${MPESA_CONSUMER_KEY:___}
+mpesa.consumer-secret=${MPESA_CONSUMER_SECRET:___}
+mpesa.shortcode=${MPESA_SHORTCODE:174379}
+mpesa.passkey=${MPESA_PASSKEY:___}
+mpesa.callback-url=${MPESA_CALLBACK_URL:https://larisa-unenjoyable-carry.ngrok-free.dev/api/callbacks/mpesa}
+mpesa.stk-callback-url=${MPESA_STK_CALLBACK_URL:https://larisa-unenjoyable-carry.ngrok-free.dev/api/callbacks/stk}
+mpesa.env=${MPESA_ENV:sandbox}
+
+# Demo Mode (Set to true for testing without real M-Pesa credentials)
+demo.mode=${DEMO_MODE:false}
+
+# Logging
+logging.level.org.springframework.web=INFO
+#logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.NovaGroup=DEBUG
