@@ -8,7 +8,7 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 @Builder
 public class RegisterRequest {
-    @NotBlank(message = "Email is required")
+//    @NotBlank(message = "Email is required")
     @Email(message = "Email must be valid")
     private String email;
 
@@ -20,8 +20,8 @@ public class RegisterRequest {
     )
     private String password;
 
-    @NotBlank(message = "Full name is required")
-    @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
+//    @NotBlank(message = "Full name is required")
+//    @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
     private String fullName;
 
     @NotBlank(message = "Username is required")
@@ -29,7 +29,7 @@ public class RegisterRequest {
     @Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Username can only contain letters, numbers, underscores, and hyphens")
     private String username;
 
-    @NotBlank(message = "Phone number is required")
+//    @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^254\\d{9}$|^\\+254\\d{9}$|^0\\d{9}$", message = "Phone must be a valid Kenyan number (254XXXXXXXXX or +254XXXXXXXXX or 0XXXXXXXXX)")
     private String phone;
 

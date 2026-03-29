@@ -42,7 +42,7 @@ public class AuthService {
     public AuthResponse register(RegisterRequest request) {
         log.info("Registering user: {}", request.getEmail());
 
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (!request.getEmail().isEmpty()&&userRepository.existsByEmail(request.getEmail())) {
             throw new ApiException("Email already registered", "DUPLICATE_EMAIL");
         }
 
@@ -101,7 +101,7 @@ public class AuthService {
         );
 
         String token = tokenProvider.generateToken(authentication);
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmailOrUsername(request.getEmail())
             .orElseThrow(() -> new ApiException("User not found", "USER_NOT_FOUND"));
 
         log.info("User logged in successfully: {}", user.getId());
@@ -116,7 +116,7 @@ public class AuthService {
     }
 
     public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
+        return userRepository.findByEmailOrUsername(email)
             .orElseThrow(() -> new ApiException("User not found", "USER_NOT_FOUND"));
     }
 }

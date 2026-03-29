@@ -8,8 +8,8 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 @Builder
 public class AuthRequest {
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email must be valid")
+    @NotBlank(message = "Email or username is required")
+//    @Email(message = "Email must be valid")
     private String email;
 
     @NotBlank(message = "Password is required")
