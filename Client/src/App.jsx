@@ -6,11 +6,13 @@ import ProtectedRoute from './routes/ProtectedRoute'
 // Pages
 import Login from './pages/Login'
 import Register from './pages/Register'
+import LandingPage from './pages/LandingPage'
 import Dashboard from './pages/Dashboard'
 import PayPhone from './pages/PayPhone'
 import Recharge from './pages/Recharge'
 import Transactions from './pages/Transactions'
 import Settings from './pages/Settings'
+import Profile from './pages/Profile'
 
 function App() {
   return (
@@ -20,11 +22,17 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<LandingPage />} />
           
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           } />
           
@@ -52,7 +60,7 @@ function App() {
             </ProtectedRoute>
           } />
           
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         
         <Toaster

@@ -17,6 +17,7 @@ const callbackSchema = Joi.object({
 });
 
 router.get('/', authMiddleware, walletController.getWallet);
+router.get('/limits', authMiddleware, walletController.getLimits);
 router.post('/recharge', authMiddleware, validate(rechargeSchema), walletController.recharge);
 router.post('/mock-callback', validate(callbackSchema), walletController.mockCallback);
 

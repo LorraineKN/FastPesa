@@ -6,5 +6,7 @@ const router = express.Router();
 
 router.get('/profile', authMiddleware, userController.getProfile);
 router.put('/profile', authMiddleware, userController.updateProfile);
+router.get('/preferences', authMiddleware, userController.getPreferences);
+router.put('/preferences', authMiddleware, userController.updatePreferences);
 
 module.exports = router;

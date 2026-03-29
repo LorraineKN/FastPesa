@@ -1,6 +1,7 @@
 const axios = require('axios');
 const env = require('../../config/env');
 const logger = require('../../utils/logger');
+const MpesaSecurity = require('../../utils/mpesaSecurity');
 
 class B2C {
   constructor() {
@@ -31,16 +32,35 @@ class B2C {
   async send(phoneNumber, amount, transactionId, remarks = 'EmergencyWallet payment') {
     const token = await this.getAccessToken();
     
+    // Get SecurityCredential
+    let securityCredential;
+    try {
+      if (env.MPESA_ENV === 'sandbox') {
+        securityCredential = 'sandbox_mock_security_credential';
+      } else {
+        // For production, use the provided SecurityCredential
+        securityCredential = process.env.MPESA_SECURITY_CREDENTIAL || 'placeholder_encrypted_credential';
+        
+        // Validate SecurityCredential format
+        if (!MpesaSecurity.validateSecurityCredential(securityCredential)) {
+          throw new Error('Invalid SecurityCredential format. Please check your MPESA_SECURITY_CREDENTIAL environment variable.');
+        }
+      }
+    } catch (error) {
+      logger.error('SecurityCredential validation failed:', error);
+      throw new Error('Failed to validate SecurityCredential');
+    }
+    
     const data = {
       InitiatorName: process.env.MPESA_INITIATOR_NAME || 'testapi',
-      SecurityCredential: process.env.MPESA_SECURITY_CREDENTIAL || 'placeholder_encrypted_credential',
+      SecurityCredential: securityCredential,
       CommandID: 'BusinessPayment',
       Amount: amount,
       PartyA: this.shortcode,
       PartyB: phoneNumber,
       Remarks: `${remarks} ${transactionId}`,
-      QueueTimeOutURL: `${process.env.CALLBACK_BASE_URL}/mpesa/timeout`,
-      ResultURL: `${process.env.CALLBACK_BASE_URL}/mpesa/b2c-result`,
+      QueueTimeOutURL: `${process.env.CALLBACK_BASE_URL || 'https://your-domain.com'}/api/mpesa/timeout`,
+      ResultURL: `${process.env.CALLBACK_BASE_URL || 'https://your-domain.com'}/api/mpesa/b2c-result`,
       Occasion: 'Payment',
     };
 
@@ -53,12 +73,17 @@ class B2C {
       };
     }
 
-    const response = await axios.post(`${this.baseURL}/mpesa/b2c/v1/paymentrequest`, data, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    
-    logger.info('B2C payment initiated', response.data);
-    return response.data;
+    try {
+      const response = await axios.post(`${this.baseURL}/mpesa/b2c/v1/paymentrequest`, data, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      logger.info('B2C payment initiated', response.data);
+      return response.data;
+    } catch (error) {
+      logger.error('B2C payment request failed:', error.response?.data || error.message);
+      throw new Error(`B2C payment failed: ${error.response?.data?.errorMessage || error.message}`);
+    }
   }
 }
 

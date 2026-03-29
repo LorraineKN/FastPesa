@@ -106,21 +106,26 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">Emergency Wallet</h1>
-              <p className="text-sm text-gray-500">Welcome back, {user?.fullName}</p>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center h-auto sm:h-16 py-3 sm:py-0">
+            <div className="mb-2 sm:mb-0">
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Emergency Wallet</h1>
+              <p className="text-xs sm:text-sm text-gray-500">Welcome back, {user?.fullName}</p>
             </div>
-            <Button variant="secondary" onClick={handleLogout}>
-              Logout
-            </Button>
+            <div className="flex flex-row space-x-2">
+              <Button variant="secondary" size="sm" onClick={() => navigate('/profile')}>
+                👤 Profile
+              </Button>
+              <Button variant="secondary" size="sm" onClick={handleLogout}>
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          <div className="xl:col-span-2 space-y-4 sm:space-y-6">
             <WalletCard 
               balance={balance} 
               dailyLimit={dailyLimit} 
@@ -128,15 +133,15 @@ const Dashboard = () => {
               loading={loading}
             />
             
-            <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold text-gray-800">Recent Transactions</h2>
-                <Button variant="secondary" onClick={() => navigate('/transactions')}>
+            <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 space-y-2 sm:space-y-0">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-800">Recent Transactions</h2>
+                <Button variant="secondary" size="sm" onClick={() => navigate('/transactions')}>
                   View All
                 </Button>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {transactions && transactions.length > 0 ? (
                   transactions.map((transaction) => (
                     <TransactionItem 
@@ -149,32 +154,32 @@ const Dashboard = () => {
                     />
                   ))
                 ) : (
-                  <p className="text-gray-500 text-center py-8">No transactions yet</p>
+                  <p className="text-gray-600 text-center py-6 sm:py-8">No transactions yet</p>
                 )}
               </div>
             </div>
           </div>
           
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 sm:p-6">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Quick Actions</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3">
                 {quickActions.map((action, index) => (
                   <button
                     key={index}
                     onClick={action.onClick}
-                    className={`${action.color} text-white rounded-lg p-4 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2`}
+                    className={`${action.color} text-white rounded-lg p-3 sm:p-4 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2`}
                   >
-                    <div className="text-2xl mb-2">{action.icon}</div>
-                    <div className="font-medium text-sm">{action.title}</div>
+                    <div className="text-xl sm:text-2xl mb-1 sm:mb-2">{action.icon}</div>
+                    <div className="font-medium text-xs sm:text-sm">{action.title}</div>
                   </button>
                 ))}
               </div>
             </div>
             
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-medium text-blue-900 mb-2">Emergency Access</h3>
-              <p className="text-sm text-blue-700">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+              <h3 className="font-medium text-blue-900 mb-2 text-sm sm:text-base">Emergency Access</h3>
+              <p className="text-xs sm:text-sm text-blue-700">
                 Your wallet is accessible from any device with just your username and PIN. 
                 No phone required for emergency situations.
               </p>

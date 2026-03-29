@@ -20,3 +20,40 @@ exports.updateProfile = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getPreferences = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    // For now, return default preferences
+    res.json({
+      theme: 'light',
+      language: 'en',
+      notifications: {
+        email: true,
+        sms: false,
+        push: true
+      },
+      security: {
+        twoFactorEnabled: false,
+        sessionTimeout: 24 // hours
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.updatePreferences = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const preferences = req.body;
+    // For now, just return success (future: save to database)
+    res.json({ 
+      success: true, 
+      message: 'Preferences updated successfully',
+      preferences 
+    });
+  } catch (error) {
+    next(error);
+  }
+};

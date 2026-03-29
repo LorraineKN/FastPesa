@@ -1,3 +1,44 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Force footer links to be visible */
+.footer-link {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+}
+
+.footer-link:hover {
+  color: #93c5fd !important;
+}
+
+/* Force footer text visibility */
+.footer-text {
+  color: #d1d5db !important;
+}
+
+/* Force CTA buttons to be visible */
+.cta-button-primary {
+  background-color: #ffffff !important;
+  color: #2563eb !important;
+  font-weight: 600 !important;
+  border: none !important;
+}
+
+.cta-button-primary:hover {
+  background-color: #f3f4f6 !important;
+  color: #1d4ed8 !important;
+}
+
+.cta-button-secondary {
+  background-color: transparent !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  border: 2px solid #ffffff !important;
+}
+
+.cta-button-secondary:hover {
+  background-color: #ffffff !important;
+  color: #2563eb !important;
+}

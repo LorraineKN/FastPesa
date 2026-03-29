@@ -36,10 +36,15 @@ const Transactions = () => {
       }
       
       const data = await transactionService.getTransactions(params)
-      setTransactions(data.transactions)
-      setPagination(prev => ({ ...prev, total: data.pagination.total }))
+      setTransactions(data.transactions || [])
+      // Handle pagination - if not provided, use transactions length as total
+      setPagination(prev => ({ 
+        ...prev, 
+        total: data.pagination?.total || (data.transactions || []).length 
+      }))
     } catch (error) {
       toast.error('Failed to fetch transactions')
+      setTransactions([])
     } finally {
       setLoading(false)
     }

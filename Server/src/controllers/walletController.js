@@ -44,6 +44,20 @@ exports.mockCallback = async (req, res, next) => {
   }
 };
 
+exports.getLimits = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const wallet = await walletService.getBalance(userId);
+    res.json({
+      dailyLimit: wallet.dailyLimit,
+      monthlyLimit: wallet.monthlyLimit,
+      customLimits: null // For future implementation
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.recharge = async (req, res, next) => {
   try {
     const userId = req.user.id;

@@ -89,18 +89,18 @@ const Register = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-6 sm:p-8 space-y-6 sm:space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900 mb-2">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">
             Create Account
           </h2>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Join Emergency Wallet today
           </p>
         </div>
         
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
           <Input
             label="Full Name"
             name="fullName"
@@ -159,14 +159,15 @@ const Register = () => {
             type="submit"
             loading={loading}
             className="w-full"
+            size="lg"
           >
             Create Account
           </Button>
           
-          <div className="text-center pt-4 border-t border-gray-200">
+          <div className="text-center pt-3 sm:pt-4 border-t border-gray-200">
             <Link
               to="/login"
-              className="text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors"
+              className="text-blue-600 hover:text-blue-700 font-medium text-sm sm:text-base transition-colors"
             >
               Already have an account? Sign in
             </Link>

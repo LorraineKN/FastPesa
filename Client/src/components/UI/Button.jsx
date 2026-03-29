@@ -7,10 +7,18 @@ const Button = ({
   variant = 'primary', 
   disabled = false, 
   loading = false,
+  size = 'md',
   className = '',
   ...props 
 }) => {
-  const baseClasses = 'font-medium py-2 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2'
+  const baseClasses = 'font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2'
+  
+  const sizes = {
+    sm: 'py-2 px-3 text-sm',
+    md: 'py-2 px-4 text-sm',
+    lg: 'py-3 px-6 text-base',
+    xl: 'py-4 px-8 text-lg'
+  }
   
   const variants = {
     primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500',
@@ -19,7 +27,7 @@ const Button = ({
     success: 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500'
   }
   
-  const classes = `${baseClasses} ${variants[variant]} ${disabled || loading ? 'opacity-50 cursor-not-allowed' : ''} ${className}`
+  const classes = `${baseClasses} ${sizes[size]} ${variants[variant]} ${disabled || loading ? 'opacity-50 cursor-not-allowed' : ''} ${className}`
   
   return (
     <button
