@@ -95,8 +95,8 @@ The system is deployed using **Docker** to containerize the backend application 
 | Name | Role |
 |------|------|
 | Patrick Githinji | Backend Developer |
-| Akinkunmi Akinsola | Backend Developer |
-| Edwin Mwiti | Frontend Developer |
+| Akinkunmi Akinsola | Frontend Developer |
+| Edwin Mwiti | Backend Developer |
 | Lorraine Kawira | Database & Documentation |
 | Onyango Tom Obande | System Design & Testing |
 | Morris Tsangilwa David | Project Management & Testing |
