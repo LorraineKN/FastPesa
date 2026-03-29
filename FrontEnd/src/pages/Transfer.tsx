@@ -81,7 +81,7 @@ const Transfer = () => {
             <ArrowLeftRight className="w-5 h-5 text-primary" />
             Wallet Transfer
           </CardTitle>
-          <CardDescription>Send money to another InstantAid wallet</CardDescription>
+          <CardDescription>Send money to another FastPesa wallet</CardDescription>
         </CardHeader>
         <CardContent>
           {wallet && (

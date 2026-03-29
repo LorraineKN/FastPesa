@@ -23,10 +23,10 @@ const AboutPage = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-4xl lg:text-5xl font-display font-bold text-foreground mb-6">
-                About <span className="text-primary">InstantAid Pay</span>
+                About <span className="text-primary">FastPesa</span>
               </h1>
               <p className="text-lg text-muted-foreground mb-6">
-                InstantAid Pay is Kenya's modern digital wallet platform, designed to make sending, receiving, and managing money simple, fast, and secure. Built for students, small businesses, and everyday Kenyans.
+                FastPesa is Kenya's modern digital wallet platform, designed to make sending, receiving, and managing money simple, fast, and secure. Built for students, small businesses, and everyday Kenyans.
               </p>
               <p className="text-muted-foreground">
                 Our platform simulates the full M-Pesa experience with wallet-to-wallet transfers, Paybill payments, Buy Goods transactions, and real-time confirmation messages — all within a secure demo environment.
@@ -79,7 +79,7 @@ const AboutPage = () => {
             />
           </div>
           <div>
-            <h2 className="text-3xl font-display font-bold text-foreground mb-6">Why InstantAid Pay?</h2>
+            <h2 className="text-3xl font-display font-bold text-foreground mb-6">Why FastPesa?</h2>
             <div className="space-y-4">
               {[
                 { icon: Zap, title: 'Instant Transfers', desc: 'Send money between wallets in real-time using just a Wallet ID — no phone or email required.' },

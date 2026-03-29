@@ -20,7 +20,7 @@ const PublicHeader: React.FC = () => {
           <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
             <Wallet className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-display font-bold text-xl text-foreground">InstantAid Pay</span>
+          <span className="font-display font-bold text-xl text-foreground">FastPesa</span>
         </button>
         <div className="flex items-center gap-3">
           {loading ? (

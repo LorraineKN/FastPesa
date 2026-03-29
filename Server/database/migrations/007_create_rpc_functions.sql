@@ -220,8 +220,12 @@ RETURNS JSON AS $$
 DECLARE
     sender_wallet RECORD;
     receiver_wallet RECORD;
+    sender_profile RECORD;
+    receiver_profile RECORD;
     transaction_ref TEXT;
     transaction_id UUID;
+    sender_name TEXT;
+    receiver_name TEXT;
 BEGIN
     -- Get sender wallet
     SELECT * INTO sender_wallet FROM wallets WHERE user_id = p_sender_user_id;
@@ -241,6 +245,10 @@ BEGIN
         RETURN json_build_object('status', 'error', 'message', 'Receiver wallet not found');
     END IF;
     
+    -- Get user profiles for names
+    SELECT full_name INTO sender_name FROM profiles WHERE user_id = p_sender_user_id;
+    SELECT full_name INTO receiver_name FROM profiles WHERE user_id = receiver_wallet.user_id;
+    
     -- Update balances
     UPDATE wallets SET balance = balance - p_amount WHERE id = sender_wallet.id;
     UPDATE wallets SET balance = balance + p_amount WHERE id = receiver_wallet.id;
@@ -248,8 +256,14 @@ BEGIN
     -- Create transaction
     transaction_ref := generate_tx_reference();
     INSERT INTO transactions (user_id, sender_wallet_id, receiver_wallet_id, type, amount, status, description, reference)
-    VALUES (p_sender_user_id, sender_wallet.id, receiver_wallet.id, 'wallet_transfer', p_amount, 'completed', 'Wallet transfer', transaction_ref)
+    VALUES (p_sender_user_id, sender_wallet.id, receiver_wallet.id, 'wallet_transfer', p_amount, 'completed', 
+            'Transfer to ' || COALESCE(receiver_name, 'Unknown User'), transaction_ref)
     RETURNING id INTO transaction_id;
+    
+    -- Create transaction for receiver
+    INSERT INTO transactions (user_id, sender_wallet_id, receiver_wallet_id, type, amount, status, description, reference)
+    VALUES (receiver_wallet.user_id, sender_wallet.id, receiver_wallet.id, 'wallet_transfer', p_amount, 'completed', 
+            'Received from ' || COALESCE(sender_name, 'Unknown User'), transaction_ref);
     
     RETURN json_build_object(
         'status', 'success',

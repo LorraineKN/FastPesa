@@ -58,7 +58,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 <Wallet className="w-5 h-5 text-primary-foreground" />
               </div>
               <div>
-                <h2 className="font-display font-bold text-foreground">InstantAid</h2>
+                <h2 className="font-display font-bold text-foreground">FastPesa</h2>
                 <p className="text-xs text-muted-foreground">Pay</p>
               </div>
             </button>

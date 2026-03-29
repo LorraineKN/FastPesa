@@ -26,7 +26,7 @@ class WalletService {
           id: wallet.id,
           balance: parseFloat(wallet.balance), 
           currency: wallet.currency || 'KES',
-          wallet_name: wallet.wallet_name || 'InstantAid Wallet',
+          wallet_name: wallet.wallet_name || 'FastPesa Wallet',
           is_active: wallet.is_active,
           is_demo_funded: wallet.is_demo_funded,
           dailyLimit: 100000, // Default limits for compatibility

@@ -18,7 +18,7 @@ const PrivacyPage = () => {
         <h2 className="text-foreground">4. Data Retention</h2>
         <p className="text-muted-foreground">Demo account data may be periodically cleared. This is a demonstration platform.</p>
         <h2 className="text-foreground">5. Contact</h2>
-        <p className="text-muted-foreground">For privacy concerns, email privacy@instantaidpay.co.ke</p>
+        <p className="text-muted-foreground">For privacy concerns, email privacy@fastpesa.co.ke</p>
       </section>
       <PublicFooter />
     </div>

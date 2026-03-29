@@ -11,7 +11,7 @@ const PublicFooter: React.FC = () => {
       <div className="container flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <Wallet className="w-5 h-5 text-primary" />
-          <span className="font-display font-semibold text-foreground">InstantAid Pay</span>
+          <span className="font-display font-semibold text-foreground">FastPesa</span>
         </div>
         <div className="flex items-center gap-4 flex-wrap justify-center">
           <Button variant="link" size="sm" onClick={() => navigate('/')} className="text-muted-foreground">Home</Button>
@@ -19,7 +19,7 @@ const PublicFooter: React.FC = () => {
           <Button variant="link" size="sm" onClick={() => navigate('/terms')} className="text-muted-foreground">Terms</Button>
           <Button variant="link" size="sm" onClick={() => navigate('/privacy')} className="text-muted-foreground">Privacy</Button>
         </div>
-        <p className="text-sm text-muted-foreground">© 2026 InstantAid Pay. All rights reserved.</p>
+        <p className="text-sm text-muted-foreground">© 2026 FastPesa. All rights reserved.</p>
       </div>
     </footer>
   );

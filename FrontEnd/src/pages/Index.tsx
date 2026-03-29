@@ -13,7 +13,7 @@ const Index = () => {
   const { user } = useAuth();
 
   const features = [
-    { icon: Send, title: 'Wallet Transfers', description: 'Send money instantly between InstantAid wallets using Wallet ID — no phone or email needed' },
+    { icon: Send, title: 'Wallet Transfers', description: 'Send money instantly between FastPesa wallets using Wallet ID — no phone or email needed' },
     { icon: CreditCard, title: 'M-Pesa Integration', description: 'Paybill, Send Money, and Buy Goods — all simulated in demo mode' },
     { icon: QrCode, title: 'Payment Requests', description: 'Generate payment links and QR codes for your business' },
     { icon: Shield, title: 'Bank-Grade Security', description: 'Encrypted transactions with full audit trails' },
