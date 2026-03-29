@@ -1,9 +1,10 @@
 package org.NovaGroup.EmergencyWallet.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.NovaGroup.EmergencyWallet.Mpesa.models.StkPushResponse;
 import org.NovaGroup.EmergencyWallet.dto.*;
 import org.NovaGroup.EmergencyWallet.service.AuthService;
-import org.NovaGroup.EmergencyWallet.service.MpesaService;
+import org.NovaGroup.EmergencyWallet.Mpesa.MpesaService;
 import org.NovaGroup.EmergencyWallet.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -83,13 +84,13 @@ public class TransactionController {
     }
 
     @PostMapping("/mpesa/stk-push")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> initiateStkPush(
+    public ResponseEntity<ApiResponse<StkPushResponse>> initiateStkPush(
             @RequestParam String phoneNumber,
             @RequestParam long amount,
             Authentication authentication) throws IOException {
         log.info("Initiating STK Push for user: {} phone: {}", authentication.getName(), phoneNumber);
         String userId = authService.getUserByEmail(authentication.getName()).getId();
-        Map<String, Object> response = mpesaService.initiateStkPush(phoneNumber, amount, userId);
+        StkPushResponse response = mpesaService.initiateStkPush(phoneNumber, amount, userId);
         return new ResponseEntity<>(ApiResponse.success("STK Push initiated", response), HttpStatus.CREATED);
     }
 

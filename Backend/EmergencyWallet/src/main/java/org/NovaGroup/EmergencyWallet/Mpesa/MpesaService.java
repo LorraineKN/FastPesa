@@ -1,9 +1,11 @@
-package org.NovaGroup.EmergencyWallet.service;
+package org.NovaGroup.EmergencyWallet.Mpesa;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.NovaGroup.EmergencyWallet.Mpesa.models.MpesaTokenResponse;
+import org.NovaGroup.EmergencyWallet.Mpesa.models.StkPushResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
@@ -57,7 +59,6 @@ public class MpesaService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public String getAccessToken() throws IOException {
-        // Return cached token if still valid
         if (accessToken != null && tokenExpiry != null && LocalDateTime.now().isBefore(tokenExpiry)) {
             log.debug("Returning cached access token");
             return accessToken;
@@ -71,41 +72,32 @@ public class MpesaService {
         Request request = new Request.Builder()
                 .url(authUrl)
                 .header("Authorization", "Basic " + credentials)
-                .header("User-Agent", "Java/OkHttp") // important for sandbox
+                .header("User-Agent", "Java/OkHttp")
                 .build();
-        log.debug("Auth request: {}", request);
 
         try (Response response = client.newCall(request).execute()) {
-            log.debug("HTTP response code: {}", response.code());
-
             if (!response.isSuccessful()) {
-                log.error("Failed to get M-Pesa access token. Status: {}, Response: {}", response.code(), response.body() != null ? response.body().string() : "empty");
-                throw new IOException("Failed to authenticate with Daraja API");
+                throw new IOException("Failed to authenticate with Daraja API. HTTP: " + response.code());
             }
 
             String responseBodyStr = response.body() != null ? response.body().string() : "";
-            log.debug("Token response body: {}", responseBodyStr);
+            log.debug("Token Response: {}", responseBodyStr);
 
-            // Parse JSON safely
-            Map<String, Object> responseBody = objectMapper.readValue(responseBodyStr, new TypeReference<Map<String, Object>>() {});
-            Object tokenObj = responseBody.get("access_token");
-            if (tokenObj instanceof String) {
-                accessToken = (String) tokenObj;
-            } else {
-                log.error("access_token not found or not a string in response!");
-                throw new IOException("Invalid access token response");
-            }
+            MpesaTokenResponse tokenResponse = objectMapper.readValue(responseBodyStr, MpesaTokenResponse.class);
+            accessToken = tokenResponse.getAccess_token();
+            tokenExpiry = LocalDateTime.now().plusMinutes(55);
 
-            tokenExpiry = LocalDateTime.now().plusMinutes(55); // buffer before actual expiry
             log.info("M-Pesa access token obtained successfully");
             log.debug("Access Token: {}", accessToken);
             return accessToken;
         }
     }
 
-    public Map<String, Object> initiateStkPush(String phoneNumber, long amount, String accountReference) throws IOException {
+    public StkPushResponse initiateStkPush(String phoneNumber, long amount, String accountReference) throws IOException {
         if (demoMode) {
-            return simulateStkPush(phoneNumber, amount, accountReference);
+            Map<String, Object> simulated = simulateStkPush(phoneNumber, amount, accountReference);
+            // map simulated response to DTO if needed
+            return objectMapper.convertValue(simulated, StkPushResponse.class);
         }
 
         String token = getAccessToken();
@@ -134,7 +126,7 @@ public class MpesaService {
         Request request = new Request.Builder()
                 .url(url)
                 .header("Authorization", "Bearer " + token)
-                .header("User-Agent", "Java/OkHttp") // important for sandbox
+                .header("User-Agent", "Java/OkHttp")
                 .post(body)
                 .build();
 
@@ -142,21 +134,21 @@ public class MpesaService {
             String responseBodyStr = response.body() != null ? response.body().string() : "";
             log.debug("STK Push response body: {}", responseBodyStr);
 
-            Map<String, Object> responseBody = objectMapper.readValue(responseBodyStr, new TypeReference<Map<String, Object>>() {});
-            log.info("STK Push initiated. Response code: {}", responseBody.get("ResponseCode"));
-            return responseBody;
+            StkPushResponse stkResponse = objectMapper.readValue(responseBodyStr, StkPushResponse.class);
+            log.info("STK Push initiated. Response code: {}", stkResponse.getResponseCode());
+            return stkResponse;
         }
     }
     public Map<String, Object> simulateStkPush(String phoneNumber, long amount, String accountReference) {
         log.info("[DEMO MODE] Simulating STK Push. Phone: {}, Amount: {}", phoneNumber, amount);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("MerchantRequestID", "ws_CO_" + System.currentTimeMillis());
         response.put("CheckoutRequestID", "ws_CO_" + System.currentTimeMillis());
         response.put("ResponseCode", "0");
         response.put("ResponseDescription", "Success. Request accepted for processing.");
         response.put("CustomerMessage", "Success. Request accepted for processing.");
-        
+
         return response;
     }
 
@@ -286,25 +278,25 @@ public class MpesaService {
 
     public Map<String, Object> simulateB2B(String receiverShortcode, long amount) {
         log.info("[DEMO MODE] Simulating B2B. Receiver: {}, Amount: {}", receiverShortcode, amount);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("ConversationID", "b2b_" + System.currentTimeMillis());
         response.put("OriginatorConversationID", "ob2b_" + System.currentTimeMillis());
         response.put("ResponseCode", "0");
         response.put("ResponseDescription", "Accept the service request successfully.");
-        
+
         return response;
     }
 
     public Map<String, Object> simulateB2C(String phoneNumber, long amount) {
         log.info("[DEMO MODE] Simulating B2C. Phone: {}, Amount: {}", phoneNumber, amount);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("ConversationID", "b2c_" + System.currentTimeMillis());
         response.put("OriginatorConversationID", "ob2c_" + System.currentTimeMillis());
         response.put("ResponseCode", "0");
         response.put("ResponseDescription", "Accept the service request successfully.");
-        
+
         return response;
     }
 
