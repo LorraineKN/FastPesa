@@ -29,6 +29,18 @@ class MpesaService {
   }
 
   async stkPush(phoneNumber, amount) {
+    // Check if we're in test mode (no real credentials)
+    if (!this.consumerKey || !this.consumerSecret || this.consumerKey === 'your_consumer_key') {
+      logger.info('Using mock STK Push for testing');
+      return {
+        CheckoutRequestID: `MOCK_${Date.now()}`,
+        MerchantRequestID: `MOCK_MERCHANT_${Date.now()}`,
+        ResponseCode: '0',
+        ResponseDescription: 'Success. Request accepted for processing',
+        CustomerMessage: 'Mock STK Push initiated successfully'
+      };
+    }
+
     const token = await this.getAccessToken();
     const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
     const password = Buffer.from(`${this.shortcode}${this.passkey}${timestamp}`).toString('base64');

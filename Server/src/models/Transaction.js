@@ -24,6 +24,12 @@ class Transaction {
     return result.rows[0];
   }
 
+  static async findByReferenceCode(referenceCode) {
+    const sql = `SELECT * FROM transactions WHERE reference_code = $1`;
+    const result = await query(sql, [referenceCode]);
+    return result.rows[0];
+  }
+
   static async findByWalletId(walletId, limit = 50, offset = 0) {
     const sql = `
       SELECT * FROM transactions 

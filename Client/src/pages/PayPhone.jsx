@@ -61,8 +61,13 @@ const PayPhone = () => {
     setLoading(true)
     
     try {
+      // Normalize phone number by removing + sign if present
+      const normalizedPhone = formData.phoneNumber.startsWith('+') 
+        ? formData.phoneNumber.substring(1) 
+        : formData.phoneNumber
+      
       await paymentService.payPhone({
-        phoneNumber: formData.phoneNumber,
+        phoneNumber: normalizedPhone,
         amount: parseFloat(formData.amount)
       })
       

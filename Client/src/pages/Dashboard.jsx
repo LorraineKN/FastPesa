@@ -8,6 +8,7 @@ import WalletCard from '../components/wallet/WalletCard'
 import TransactionItem from '../components/wallet/TransactionItem'
 import Button from '../components/UI/Button'
 import toast from 'react-hot-toast'
+import api from '../services/api'
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -15,6 +16,26 @@ const Dashboard = () => {
   const { balance, dailyLimit, monthlyLimit, transactions, setBalance, setTransactions, setLoading } = useWalletStore()
   
   const [loading, setLoadingState] = useState(true)
+
+  // Make testHelpers available globally for testing
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.testHelpers = {
+        completeTransaction: async (transactionId, status = 'success') => {
+          try {
+            const response = await api.post('/wallet/mock-callback', {
+              transactionId,
+              status
+            })
+            return response.data
+          } catch (error) {
+            console.error('Failed to complete transaction:', error)
+            throw error
+          }
+        }
+      }
+    }
+  }, [])
 
   useEffect(() => {
     fetchWalletData()
@@ -25,7 +46,7 @@ const Dashboard = () => {
     try {
       setLoading(true)
       const walletData = await walletService.getWallet()
-      setBalance(walletData.balance, walletData.daily_limit, walletData.monthly_limit)
+      setBalance(walletData.balance, walletData.dailyLimit, walletData.monthlyLimit)
     } catch (error) {
       toast.error('Failed to fetch wallet data')
     } finally {
@@ -37,9 +58,10 @@ const Dashboard = () => {
   const fetchRecentTransactions = async () => {
     try {
       const transactionsData = await transactionService.getTransactions({ limit: 5 })
-      setTransactions(transactionsData.transactions)
+      setTransactions(transactionsData?.transactions || [])
     } catch (error) {
       toast.error('Failed to fetch transactions')
+      setTransactions([]) // Ensure transactions is always an array
     }
   }
 
@@ -115,9 +137,16 @@ const Dashboard = () => {
               </div>
               
               <div className="space-y-3">
-                {transactions.length > 0 ? (
+                {transactions && transactions.length > 0 ? (
                   transactions.map((transaction) => (
-                    <TransactionItem key={transaction.id} transaction={transaction} />
+                    <TransactionItem 
+                      key={transaction.id} 
+                      transaction={transaction} 
+                      onUpdate={() => {
+                        fetchWalletData()
+                        fetchRecentTransactions()
+                      }}
+                    />
                   ))
                 ) : (
                   <p className="text-gray-500 text-center py-8">No transactions yet</p>

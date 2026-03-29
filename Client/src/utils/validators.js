@@ -9,7 +9,8 @@ export const validatePin = (pin) => {
 }
 
 export const validatePhone = (phone) => {
-  const phoneRegex = /^\+?[1-9]\d{1,14}$/
+  // Accept both +254XXXXXXXXX and 254XXXXXXXXX formats
+  const phoneRegex = /^\+?254\d{9}$/
   return phoneRegex.test(phone)
 }
 

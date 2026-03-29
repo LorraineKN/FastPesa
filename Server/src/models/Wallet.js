@@ -12,6 +12,12 @@ class Wallet {
     return result.rows[0];
   }
 
+  static async findById(id) {
+    const sql = `SELECT * FROM wallets WHERE id = $1`;
+    const result = await query(sql, [id]);
+    return result.rows[0];
+  }
+
   static async findByUserId(userId) {
     const sql = `SELECT * FROM wallets WHERE user_id = $1`;
     const result = await query(sql, [userId]);

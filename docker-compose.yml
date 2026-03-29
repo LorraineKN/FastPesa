@@ -5,7 +5,7 @@ services:
     image: postgres:15
     environment:
       POSTGRES_USER: emergency_user
-      POSTGRES_PASSWORD: securepassword
+      POSTGRES_PASSWORD: 1223
       POSTGRES_DB: emergency_wallet
     ports:
       - "5432:5432"
