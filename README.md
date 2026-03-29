@@ -1,8 +1,22 @@
 # Instant Kenya Aid
 
 ## Description
-Instant Kenya Aid is a digital platform designed to **facilitate emergency aid and donations in Kenya**.  
-It streamlines contributions via mobile payments and provides multi-role access for administrators and users.
+The Emergency Wallet is a "phone-less" financial backup designed to ensure individuals (and their children) remain mobile and safe when their primary tools fail. It solves the critical gap when a user is stranded—due to a lost/stolen phone, dead battery, or being in an insecure area where flashing a smartphone is risky.
+
+By decoupling M-Pesa access from a physical SIM card or email login, the platform provides a lightweight, memory-based way to pay for essential services like Matatus, Ubers, restaurants, or school supplies using only a username and passphrase.
+
+Functionality
+The system operates as a secure, secondary layer to a user's primary M-Pesa or bank account, focusing on high-speed, low-friction transactions for small, essential amounts (e.g., 1,000 to 5,000 KES).
+
+Setup: Users pre-authorize a "Safety Pool" of funds and create a unique Username + PIN/Passphrase combination. This eliminates the need for email access or an OTP (which requires a working phone).
+
+The "Stranger's Gadget" Protocol: In an emergency, the user accesses the platform via any available device—be it a merchant’s phone, a cyber café computer, or a school administrator’s tablet.
+
+Kid-Friendly Access: Since minors cannot legally hold M-Pesa accounts, parents can create "Sub-Wallets" for their children. Students can pay for school items or emergency transport by simply providing their credentials to a registered merchant, with funds disbursed instantly via M-Pesa.
+
+Security & Limits: To mitigate the risk of using public devices, the platform enforces strict transaction ceilings (e.g., max 5,000 KES) and uses session-clearing technology to ensure no credentials remain on the merchant’s device.
+
+Merchant Integration: Merchants (Matatu drivers, shopkeepers, etc.) act as the interface. They initiate the request, the user inputs their PIN on the merchant's interface, and the funds are moved via M-Pesa to the merchant instantly, confirming the payment.
 
 **Problem:** Manual and slow processes delay emergency assistance and donations.  
 **Solution:** This app automates aid distribution and payment tracking, ensuring timely support.  
@@ -10,9 +24,19 @@ It streamlines contributions via mobile payments and provides multi-role access 
 
 ## Screenshots
 <!-- Add images of key features -->
-![Dashboard](path/to/screenshot1.png)
-![MPesa Payment Flow](path/to/screenshot2.png)
-![User Roles](path/to/screenshot3.png)
+<img width="1600" height="804" alt="image" src="https://github.com/user-attachments/assets/b05d5b3c-6af2-47ed-b420-46bec6c7524b" />
+<img width="1600" height="804" alt="image" src="https://github.com/user-attachments/assets/7213c919-4849-4bf6-8acd-a0bf62b1c0e4" />
+<img width="1600" height="804" alt="image" src="https://github.com/user-attachments/assets/b7170b1b-f9c4-4272-a0b9-df64b40e340b" />
+<img width="1600" height="804" alt="image" src="https://github.com/user-attachments/assets/ec570831-eb46-4b0d-a334-1e1364e6b5e9" />
+<img width="1600" height="804" alt="image" src="https://github.com/user-attachments/assets/b3107273-e4e8-46ab-9a68-13be9435b6dd" />
+<img width="1600" height="804" alt="image" src="https://github.com/user-attachments/assets/01977374-b8b1-4bf1-98b0-3be64d91b05c" />
+<img width="1600" height="804" alt="image" src="https://github.com/user-attachments/assets/d82dcb32-18e1-424e-9720-43acb075566e" />
+<img width="1600" height="804" alt="image" src="https://github.com/user-attachments/assets/2524a971-fac5-4945-b172-07f89200b50f" />
+
+
+
+
+
 
 ## Live Demo
 - Frontend: [Instant Kenya Aid](https://instant-kenya-aid.lovable.app/)  
