@@ -50,7 +50,7 @@ The system acts as a backup financial access solution, ensuring that users and b
 ## Live Demo (Mandatory)
 **Live URL:** https://instant-kenya-aid.lovable.app  
 **Login:** Demo  
-**Password:** 1234  
+**Password:** Demo@1234  
 
 ---
 
