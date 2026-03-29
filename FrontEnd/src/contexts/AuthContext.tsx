@@ -43,6 +43,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (token && userStr) {
       try {
         const userData = JSON.parse(userStr);
+        
+        // Validate user data structure
+        if (!userData.id || !userData.email || !userData.user_metadata) {
+          console.warn('[Auth] Invalid user data in localStorage, clearing...');
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user');
+          setLoading(false);
+          return;
+        }
+        
         const sessionData: Session = {
           access_token: token,
           user: userData
@@ -141,6 +151,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('[Auth] Sign out error:', error);
     }
     syncSession(null);
+  };
+
+  // Function to clear all session data (for debugging)
+  const clearSession = () => {
+    console.log('[Auth] Clearing all session data');
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
+    setUser(null);
+    setSession(null);
+    apiClient.setToken('');
   };
 
   const value = useMemo(() => ({

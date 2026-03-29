@@ -267,6 +267,8 @@ router.get('/profiles', supabaseAuthMiddleware, async (req, res) => {
   try {
     const { select = '*', user_id, username } = req.query;
     
+    logger.info('Profiles endpoint called:', { user_id, username, select });
+    
     let query = 'SELECT * FROM profiles';
     const params = [];
     let paramIndex = 1;
@@ -283,7 +285,9 @@ router.get('/profiles', supabaseAuthMiddleware, async (req, res) => {
       paramIndex++;
     }
     
+    logger.info('Executing query:', { query, params });
     const profileQuery = await pool.query(query, params);
+    logger.info('Query result:', { rowCount: profileQuery.rowCount });
     
     // Return in Supabase format
     res.json(profileQuery.rows);
@@ -405,6 +409,8 @@ router.get('/notifications', supabaseAuthMiddleware, async (req, res) => {
   try {
     const { select = '*', user_id, is_read } = req.query;
     
+    logger.info('Notifications endpoint called:', { user_id, is_read, select });
+    
     let query = `SELECT ${select} FROM notifications`;
     const params = [];
     let paramIndex = 1;
@@ -423,7 +429,9 @@ router.get('/notifications', supabaseAuthMiddleware, async (req, res) => {
     
     query += ` ORDER BY created_at DESC`;
     
+    logger.info('Executing notifications query:', { query, params });
     const notificationsQuery = await pool.query(query, params);
+    logger.info('Notifications query result:', { rowCount: notificationsQuery.rowCount });
 
     res.json(notificationsQuery.rows);
   } catch (error) {
