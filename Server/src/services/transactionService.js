@@ -26,6 +26,12 @@ class TransactionService {
   async getTransactions(walletId, limit, offset) {
     return Transaction.findByWalletId(walletId, limit, offset);
   }
+
+  async findTransactionByReference(referenceCode) {
+    const sql = `SELECT * FROM transactions WHERE reference_code = $1`;
+    const result = await query(sql, [referenceCode]);
+    return result.rows[0];
+  }
 }
 
 module.exports = new TransactionService();
