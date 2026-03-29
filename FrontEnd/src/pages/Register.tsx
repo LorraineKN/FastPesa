@@ -66,15 +66,16 @@ const Register = () => {
     } else if (session) {
       // Update profile with the chosen username and optional phone
       const { apiClient } = await import('@/lib/api');
-      const profileError = await apiClient.from('profiles').update({
-        username: uniqueUsername,
-        full_name: displayName,
-        email: finalEmail,
-        phone: phone.trim() || null,
-      }).eq('user_id', session.user.id);
-
-      if (profileError) {
+      try {
+        await apiClient.from('profiles').update({
+          username: uniqueUsername,
+          full_name: displayName,
+          email: finalEmail,
+          phone: phone.trim() || null,
+        }).eq('user_id', session.user.id);
+      } catch (profileError) {
         console.error('[Register] Profile update failed', profileError);
+        // Continue anyway - account was created successfully
       }
 
       console.log('[Register] User registered successfully - auto login');
