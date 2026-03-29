@@ -35,7 +35,8 @@ const processWithdrawalSchema = Joi.object({
 const processWalletTransferSchema = Joi.object({
   p_sender_user_id: Joi.string().uuid().required(),
   p_receiver_wallet_id: Joi.string().uuid().required(),
-  p_amount: Joi.number().positive().required()
+  p_amount: Joi.number().positive().required(),
+  p_description: Joi.string().optional()
 });
 
 const processMpesaTransactionSchema = Joi.object({
@@ -285,6 +286,34 @@ router.put('/profile', supabaseAuthMiddleware, async (req, res) => {
   } catch (error) {
     logger.error('update profile error:', error);
     res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+/**
+ * RPC endpoint: Process wallet transfer
+ */
+router.post('/rpc/process_transfer', supabaseAuthMiddleware, async (req, res) => {
+  try {
+    const { error, value } = processWalletTransferSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+
+    // Ensure user can only transfer from their own wallet
+    if (value.p_sender_user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const result = await pool.query('SELECT * FROM process_transfer($1, $2, $3, $4)', [
+      value.p_sender_user_id,
+      value.p_receiver_wallet_id,
+      value.p_amount,
+      value.p_description || 'Wallet transfer'
+    ]);
+    res.json(result.rows[0].process_transfer);
+  } catch (error) {
+    logger.error('process_transfer error:', error);
+    res.status(500).json({ error: 'Failed to process transfer' });
   }
 });
 
