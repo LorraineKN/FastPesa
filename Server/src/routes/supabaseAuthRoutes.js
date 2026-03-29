@@ -162,10 +162,19 @@ router.post('/login', async (req, res) => {
 
     const result = await loginUser(email, password);
 
+    // Return Supabase-compatible response for frontend
     res.json({
-      success: true,
-      message: 'Login successful',
-      data: result
+      data: {
+        user: {
+          id: result.user.id,
+          email: result.user.email,
+          fullName: result.user.fullName,
+          username: result.user.username,
+          accountType: result.user.accountType
+        },
+        token: result.token,
+        session: result.session
+      }
     });
   } catch (error) {
     logger.error('Login endpoint error:', error);

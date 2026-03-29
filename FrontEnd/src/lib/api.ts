@@ -1,5 +1,5 @@
 // Custom API client for backend integration
-const API_URL = import.meta.env.VITE_SUPABASE_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_SUPABASE_URL || 'http://localhost:5000';
 
 export interface AuthResponse {
   data?: {

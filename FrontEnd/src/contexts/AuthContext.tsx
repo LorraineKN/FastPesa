@@ -26,6 +26,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, username: string, fullName: string, accountType: 'personal' | 'business') => Promise<{ error: any; session: Session | null | undefined }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  clearSession: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,13 +41,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const token = localStorage.getItem('auth_token');
     const userStr = localStorage.getItem('auth_user');
     
+    console.log('[Auth] Initializing session, token exists:', !!token);
+    console.log('[Auth] User data exists:', !!userStr);
+    
     if (token && userStr) {
       try {
         const userData = JSON.parse(userStr);
+        console.log('[Auth] Loaded user data:', userData.id);
         
         // Validate user data structure
         if (!userData.id || !userData.email || !userData.user_metadata) {
           console.warn('[Auth] Invalid user data in localStorage, clearing...');
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user');
+          setLoading(false);
+          return;
+        }
+        
+        // Check if user ID matches the old problematic one
+        if (userData.id === '064bba2a-3eb8-4cb9-b91c-e295c1052392') {
+          console.warn('[Auth] Detected old problematic user ID, forcing re-authentication...');
           localStorage.removeItem('auth_token');
           localStorage.removeItem('auth_user');
           setLoading(false);
@@ -172,6 +186,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signIn,
     signOut,
+    clearSession,
   }), [user, session, loading]);
 
   return (

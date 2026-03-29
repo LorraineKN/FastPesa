@@ -22,6 +22,7 @@ import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
+import { DebugClearSession } from "./components/DebugClearSession";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <DebugClearSession />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
