@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,10 +29,10 @@ const WithdrawPage = () => {
     if (user) {
       Promise.all([
         getWalletSnapshot(user.id),
-        supabase.from('profiles').select('*').eq('user_id', user.id).single(),
+        apiClient.from('profiles').select('*').eq('user_id', user.id).single(),
       ]).then(([walletResponse, p]) => {
         if (walletResponse?.wallet) setWallet(walletResponse.wallet);
-        if (p.data) setProfile(p.data);
+        if (p) setProfile(p);
       });
     }
   }, [user]);
@@ -44,7 +44,7 @@ const WithdrawPage = () => {
     const result = await withdrawFromWallet(user!.id, Number(amount), phone || undefined);
     setLoading(false);
     if (result.status === 'success') {
-      toast({ title: 'Withdrawal Successful', description: `KES ${Number(amount).toLocaleString()} withdrawn. Ref: ${result.refId}` });
+      toast({ title: 'Withdrawal Successful', description: `KES ${Number(amount).toLocaleString()} withdrawn. Ref: ${result.ref}` });
       setTimeout(() => {
         toast({ title: '📱 SMS Delivered', description: `M-Pesa withdrawal confirmation sent to ${phone || 'your number'} successfully.` });
       }, 1500);

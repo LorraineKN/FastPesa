@@ -261,6 +261,201 @@ router.get('/profile', supabaseAuthMiddleware, async (req, res) => {
 });
 
 /**
+ * REST endpoint: Get profiles (Supabase-style)
+ */
+router.get('/profiles', supabaseAuthMiddleware, async (req, res) => {
+  try {
+    const { select = '*', user_id, username } = req.query;
+    
+    let query = 'SELECT * FROM profiles';
+    const params = [];
+    let paramIndex = 1;
+    
+    if (user_id) {
+      query += ` WHERE user_id = $${paramIndex}`;
+      params.push(user_id);
+      paramIndex++;
+    }
+    
+    if (username) {
+      query += user_id ? ` AND username = $${paramIndex}` : ` WHERE username = $${paramIndex}`;
+      params.push(username);
+      paramIndex++;
+    }
+    
+    const profileQuery = await pool.query(query, params);
+    
+    // Return in Supabase format
+    res.json(profileQuery.rows);
+  } catch (error) {
+    logger.error('get profiles error:', error);
+    res.status(500).json({ error: 'Failed to get profiles' });
+  }
+});
+
+/**
+ * REST endpoint: Update profiles (Supabase-style)
+ */
+router.patch('/profiles', supabaseAuthMiddleware, async (req, res) => {
+  try {
+    const { user_id } = req.query;
+    const updateData = req.body;
+    
+    if (!user_id) {
+      return res.status(400).json({ error: 'user_id is required in query params' });
+    }
+    
+    const updates = [];
+    const params = [];
+    let paramIndex = 1;
+    
+    // Build dynamic update query
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] !== undefined) {
+        updates.push(`${key} = $${paramIndex}`);
+        params.push(updateData[key]);
+        paramIndex++;
+      }
+    });
+    
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+    
+    let query = `UPDATE profiles SET ${updates.join(', ')}, updated_at = NOW() WHERE user_id = $${paramIndex} RETURNING *`;
+    params.push(user_id);
+    
+    const updateQuery = await pool.query(query, params);
+
+    if (updateQuery.rows.length === 0) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    res.json(updateQuery.rows[0]);
+  } catch (error) {
+    logger.error('update profiles error:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+/**
+ * REST endpoint: Get wallets (Supabase-style)
+ */
+router.get('/wallets', supabaseAuthMiddleware, async (req, res) => {
+  try {
+    const { select = '*', user_id } = req.query;
+    
+    let query = `SELECT ${select} FROM wallets`;
+    const params = [];
+    let paramIndex = 1;
+    
+    if (user_id) {
+      query += ` WHERE user_id = $${paramIndex}`;
+      params.push(user_id);
+      paramIndex++;
+    }
+    
+    const walletQuery = await pool.query(query, params);
+    
+    // Return in Supabase format
+    res.json(walletQuery.rows);
+  } catch (error) {
+    logger.error('get wallets error:', error);
+    res.status(500).json({ error: 'Failed to get wallets' });
+  }
+});
+
+/**
+ * REST endpoint: Get transactions (Supabase-style)
+ */
+router.get('/transactions', supabaseAuthMiddleware, async (req, res) => {
+  try {
+    const { select = '*', user_id, limit = '10', offset = '0' } = req.query;
+    
+    let query = `SELECT ${select} FROM transactions`;
+    const params = [];
+    let paramIndex = 1;
+    
+    if (user_id) {
+      query += ` WHERE user_id = $${paramIndex}`;
+      params.push(user_id);
+      paramIndex++;
+    }
+    
+    query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    params.push(parseInt(limit), parseInt(offset));
+    
+    const transactionsQuery = await pool.query(query, params);
+    const countQuery = await pool.query('SELECT COUNT(*) FROM transactions' + (user_id ? ` WHERE user_id = $1` : ''), user_id ? [user_id] : []);
+
+    res.json({
+      data: transactionsQuery.rows,
+      count: parseInt(countQuery.rows[0].count)
+    });
+  } catch (error) {
+    logger.error('get transactions error:', error);
+    res.status(500).json({ error: 'Failed to get transactions' });
+  }
+});
+
+/**
+ * REST endpoint: Get notifications (Supabase-style)
+ */
+router.get('/notifications', supabaseAuthMiddleware, async (req, res) => {
+  try {
+    const { select = '*', user_id, is_read } = req.query;
+    
+    let query = `SELECT ${select} FROM notifications`;
+    const params = [];
+    let paramIndex = 1;
+    
+    if (user_id) {
+      query += ` WHERE user_id = $${paramIndex}`;
+      params.push(user_id);
+      paramIndex++;
+    }
+    
+    if (is_read !== undefined) {
+      query += user_id ? ` AND is_read = $${paramIndex}` : ` WHERE is_read = $${paramIndex}`;
+      params.push(is_read === 'true');
+      paramIndex++;
+    }
+    
+    query += ` ORDER BY created_at DESC`;
+    
+    const notificationsQuery = await pool.query(query, params);
+
+    res.json(notificationsQuery.rows);
+  } catch (error) {
+    logger.error('get notifications error:', error);
+    res.status(500).json({ error: 'Failed to get notifications' });
+  }
+});
+
+/**
+ * REST endpoint: Update notifications (Supabase-style)
+ */
+router.patch('/notifications', supabaseAuthMiddleware, async (req, res) => {
+  try {
+    const { user_id, is_read } = req.query;
+    
+    if (!user_id) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    
+    const updateQuery = await pool.query(
+      'UPDATE notifications SET is_read = $1 WHERE user_id = $2 RETURNING *',
+      [is_read === 'true', user_id]
+    );
+
+    res.json(updateQuery.rows);
+  } catch (error) {
+    logger.error('update notifications error:', error);
+    res.status(500).json({ error: 'Failed to update notifications' });
+  }
+});
+
+/**
  * REST endpoint: Update user profile
  */
 router.put('/profile', supabaseAuthMiddleware, async (req, res) => {

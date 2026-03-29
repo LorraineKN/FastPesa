@@ -49,15 +49,98 @@ router.post('/register', async (req, res) => {
     logger.error('Registration endpoint error:', error);
     
     if (error.message.includes('already exists')) {
-      return res.status(409).json({ 
-        error: 'User already exists',
-        message: error.message 
+      return res.status(409).json({
+        error: 'Registration failed',
+        message: error.message
+      });
+    }
+    
+    res.status(500).json({
+      error: 'Registration failed',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Register a new user (alias for signup) - handles both direct and Supabase SDK formats
+ */
+router.post('/signup', async (req, res) => {
+  try {
+    // Debug: Log what we receive
+    logger.info('Signup request body:', JSON.stringify(req.body, null, 2));
+    
+    let email, password, fullName, username, accountType;
+    
+    // Handle Supabase SDK format
+    if (req.body.email && req.body.password && req.body.options && req.body.options.data) {
+      email = req.body.email;
+      password = req.body.password;
+      fullName = req.body.options.data.full_name;
+      username = req.body.options.data.username;
+      accountType = req.body.options.data.account_type || 'personal';
+      logger.info('Using Supabase SDK format');
+    } 
+    // Handle direct format
+    else if (req.body.email && req.body.password) {
+      email = req.body.email;
+      password = req.body.password;
+      fullName = req.body.fullName || req.body.username; // Handle missing fullName
+      username = req.body.username;
+      accountType = req.body.accountType || 'personal';
+      logger.info('Using direct format (flexible)');
+    } else {
+      logger.info('Validation failed - missing required fields');
+      return res.status(400).json({ 
+        error: 'Validation error', 
+        details: 'Required fields: email, password'
       });
     }
 
-    res.status(500).json({ 
+    // Handle empty strings - convert to null where appropriate
+    email = email && email.trim() ? email.trim() : null;
+    fullName = fullName && fullName.trim() ? fullName.trim() : username; // Use username as fallback
+    username = username && username.trim() ? username.trim() : null;
+
+    // Validate required fields
+    if (!email || !password || !username) {
+      logger.info('Validation failed - missing required fields after processing');
+      return res.status(400).json({ 
+        error: 'Validation error', 
+        details: 'Required fields: email, password, username'
+      });
+    }
+
+    const result = await registerUser(email, password, fullName, username, accountType);
+
+    // Return Supabase-compatible response
+    res.status(201).json({
+      data: {
+        user: {
+          id: result.user.id,
+          email: result.user.email,
+          user_metadata: {
+            full_name: result.user.fullName,
+            account_type: result.user.accountType,
+            username: result.user.username
+          }
+        },
+        session: result.session
+      }
+    });
+  } catch (error) {
+    logger.error('Signup endpoint error:', error);
+    
+    if (error.message.includes('already exists')) {
+      return res.status(409).json({
+        error: 'Registration failed',
+        message: error.message
+      });
+    }
+    
+    res.status(500).json({
       error: 'Registration failed',
-      message: error.message 
+      message: error.message
     });
   }
 });

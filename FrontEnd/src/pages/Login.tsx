@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,18 +31,14 @@ const Login = () => {
 
     // If not an email, look up by username
     if (!email.includes('@')) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('username', email.toLowerCase())
-        .single();
+      const profile = await apiClient.from('profiles').select('email').eq('username', email.toLowerCase());
 
       if (!profile) {
         setLoading(false);
         toast({ title: 'Login Failed', description: 'Username not found', variant: 'destructive' });
         return;
       }
-      email = profile.email;
+      email = profile.data?.[0]?.email || email;
     }
 
     const { error } = await signIn(email, password);

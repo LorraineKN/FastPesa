@@ -9,8 +9,9 @@ import { Wallet, Eye, EyeOff, User, Building2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 function generateDemoEmail(username: string): string {
+  const timestamp = Date.now();
   const rand = Math.random().toString(36).substring(2, 8);
-  return `${username.toLowerCase()}_${rand}@instantaid.demo`;
+  return `${username.toLowerCase()}_${timestamp}_${rand}@instantaid.demo`;
 }
 
 const Register = () => {
@@ -48,9 +49,13 @@ const Register = () => {
 
     const displayName = fullName.trim() || username.trim();
     const finalEmail = email.trim() || generateDemoEmail(username.trim());
+    // Generate unique username for demo accounts to avoid conflicts
+    const uniqueUsername = email.trim() 
+      ? username.trim().toLowerCase() 
+      : `${username.trim().toLowerCase()}_${Date.now()}`;
 
     setLoading(true);
-    const { error, session } = await signUp(finalEmail, password, username.trim().toLowerCase(), displayName, accountType);
+    const { error, session } = await signUp(finalEmail, password, uniqueUsername, displayName, accountType);
     setLoading(false);
 
     if (error) {
@@ -60,9 +65,9 @@ const Register = () => {
       toast({ title: 'Registration Failed', description: msg, variant: 'destructive' });
     } else if (session) {
       // Update profile with the chosen username and optional phone
-      const { supabase } = await import('@/integrations/supabase/client');
-      const { error: profileError } = await supabase.from('profiles').update({
-        username: username.trim().toLowerCase(),
+      const { apiClient } = await import('@/lib/api');
+      const profileError = await apiClient.from('profiles').update({
+        username: uniqueUsername,
         full_name: displayName,
         email: finalEmail,
         phone: phone.trim() || null,
@@ -75,7 +80,7 @@ const Register = () => {
       console.log('[Register] User registered successfully - auto login');
       toast({
         title: 'Welcome to InstantAid Pay! 🎉',
-        description: `Account ready with KES 10,000 demo balance. Username: @${username.trim().toLowerCase()}`,
+        description: `Account ready with KES 10,000 demo balance. Username: @${uniqueUsername}`,
       });
       navigate('/dashboard');
     } else {

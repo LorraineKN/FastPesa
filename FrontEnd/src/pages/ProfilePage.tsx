@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,19 +53,14 @@ const ProfilePage = () => {
       setLoading(true);
       
       // Get profile
-      const { data: profileData, error: profileError } = await supabase
+      const profileData = await apiClient
         .from('profiles')
         .select('*')
         .eq('user_id', user!.id)
         .single();
 
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.error('Profile fetch error:', profileError);
-        return;
-      }
-
       // Get wallet
-      const { data: walletData } = await supabase.rpc('get_wallet_snapshot', {
+      const walletData = await apiClient.rpc('get_wallet_snapshot', {
         p_user_id: user!.id
       });
 
@@ -91,7 +86,7 @@ const ProfilePage = () => {
 
   const handleSave = async () => {
     try {
-      const { error } = await supabase
+      const error = await apiClient
         .from('profiles')
         .update({
           full_name: editForm.full_name,

@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/lib/api';
 
 // Generate unique reference like TX-09814F3571
 export function generateRefId(): string {
@@ -24,365 +24,238 @@ export function formatKES(amount: number): string {
 
 // Always fetch fresh wallet balance from DB
 export async function getFreshWallet(walletId: string) {
-  const { data, error } = await supabase
-    .from('wallets')
-    .select('*')
-    .eq('id', walletId)
-    .single();
-  if (error || !data) {
+  try {
+    const data = await apiClient
+      .from('wallets')
+      .select('*')
+      .eq('id', walletId)
+      .single();
+    
+    if (!data) {
+      console.error('Failed to fetch wallet: No data returned');
+      return null;
+    }
+    
+    console.log(`[Wallet] Fresh balance for ${walletId}: KES ${data.balance}`);
+    return data;
+  } catch (error) {
     console.error('Failed to fetch wallet:', error);
     return null;
   }
-  console.log(`[Wallet] Fresh balance for ${walletId}: KES ${data.balance}`);
-  return data;
 }
 
 export async function getFreshWalletByUser(userId: string) {
-  const { data, error } = await supabase
-    .from('wallets')
-    .select('*')
-    .eq('user_id', userId)
-    .single();
-  if (error || !data) {
+  try {
+    const data = await apiClient
+      .from('wallets')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+    
+    if (!data) {
+      console.error('Failed to fetch wallet by user: No data returned');
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
     console.error('Failed to fetch wallet by user:', error);
     return null;
   }
-  console.log(`[Wallet] Fresh balance for user ${userId}: KES ${data.balance}`);
-  return data;
 }
 
-// Create M-Pesa-style notification messages branded for InstantAid Pay
-export async function createTransactionNotifications({
-  refId,
-  senderUserId,
-  senderName,
-  receiverUserId,
-  receiverName,
-  amount,
-  senderNewBalance,
-  receiverNewBalance,
-  type,
-  fee = 0,
-}: {
-  refId: string;
-  senderUserId: string;
-  senderName: string;
-  receiverUserId?: string;
-  receiverName?: string;
-  amount: number;
-  senderNewBalance: number;
-  receiverNewBalance?: number;
+// Create transaction record
+export async function createTransaction(params: {
+  user_id: string;
   type: string;
-  fee?: number;
+  amount: number;
+  status: string;
+  description?: string;
+  reference?: string;
+  recipient_id?: string;
+  sender_wallet_id?: string;
+  recipient_wallet_id?: string;
+  metadata?: Record<string, any>;
 }) {
-  const ts = formatTimestamp();
-  const notifications: any[] = [];
-
-  const typeLabel = type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-
-  // Sender notification — M-Pesa style
-  let senderMsg: string;
-  if (type === 'deposit') {
-    senderMsg = `${refId} Confirmed. You have deposited ${formatKES(amount)} to your InstantAid wallet on ${ts}. New InstantAid balance is ${formatKES(senderNewBalance)}.`;
-  } else if (type === 'withdrawal') {
-    senderMsg = `${refId} Confirmed. ${formatKES(amount)} withdrawn from your InstantAid wallet on ${ts}. New InstantAid balance is ${formatKES(senderNewBalance)}. Transaction cost, ${formatKES(fee)}.`;
-  } else if (receiverName) {
-    senderMsg = `${refId} Confirmed. ${formatKES(amount)} sent to ${receiverName.toUpperCase()} on ${ts}. New InstantAid balance is ${formatKES(senderNewBalance)}. Transaction cost, ${formatKES(fee)}.`;
-  } else {
-    senderMsg = `${refId} Confirmed. ${formatKES(amount)} ${typeLabel.toLowerCase()} on ${ts}. New InstantAid balance is ${formatKES(senderNewBalance)}. Transaction cost, ${formatKES(fee)}.`;
-  }
-
-  notifications.push({
-    user_id: senderUserId,
-    type: 'transaction',
-    title: `${typeLabel} - Sent`,
-    message: senderMsg,
-    reference: refId,
-  });
-
-  // Receiver notification — M-Pesa style
-  if (receiverUserId && receiverNewBalance !== undefined) {
-    const receiverMsg = `${refId} Confirmed. You have received ${formatKES(amount)} from ${senderName.toUpperCase()} on ${ts}. New InstantAid balance is ${formatKES(receiverNewBalance)}.`;
-    notifications.push({
-      user_id: receiverUserId,
-      type: 'transaction',
-      title: `${typeLabel} - Received`,
-      message: receiverMsg,
-      reference: refId,
+  try {
+    const result = await apiClient.from('transactions').insert({
+      user_id: params.user_id,
+      type: params.type,
+      amount: params.amount,
+      status: params.status,
+      description: params.description,
+      reference: params.reference || generateRefId(),
+      recipient_id: params.recipient_id,
+      sender_wallet_id: params.sender_wallet_id,
+      recipient_wallet_id: params.recipient_wallet_id,
+      metadata: params.metadata,
     });
-  }
 
-  const { error } = await supabase.from('notifications').insert(notifications);
-  if (error) {
-    console.error('[Notifications] Insert failed:', error);
-  } else {
-    console.log(`[Notifications] ${notifications.length} notification(s) created for ${refId}`);
+    if (!result) {
+      throw new Error('Failed to create transaction');
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Create transaction error:', error);
+    throw error;
   }
 }
 
-// Process a wallet-to-wallet transfer with balance updates and notifications
-export async function processWalletTransfer({
-  senderUserId,
-  senderWalletId,
-  senderName,
-  recipientWalletId,
-  amount,
-}: {
-  senderUserId: string;
-  senderWalletId: string;
-  senderName: string;
-  recipientWalletId: string;
-  amount: number;
-}): Promise<{ success: boolean; error?: string; refId?: string }> {
-  if (amount <= 0) return { success: false, error: 'Amount must be greater than zero' };
-  if (senderWalletId === recipientWalletId) return { success: false, error: 'Cannot transfer to the same wallet' };
+// Update transaction status
+export async function updateTransactionStatus(transactionId: string, status: string, metadata?: Record<string, any>) {
+  try {
+    const result = await apiClient
+      .from('transactions')
+      .update({
+        status,
+        updated_at: new Date().toISOString(),
+        ...(metadata && { metadata }),
+      })
+      .eq('id', transactionId);
 
-  const senderWallet = await getFreshWallet(senderWalletId);
-  if (!senderWallet) return { success: false, error: 'Failed to load your wallet' };
+    if (!result) {
+      throw new Error('Failed to update transaction');
+    }
 
-  const senderBalance = Number(senderWallet.balance);
-  if (amount > senderBalance) return { success: false, error: 'Insufficient balance' };
-
-  const { data: recipientWallet, error: rErr } = await supabase
-    .from('wallets')
-    .select('*')
-    .eq('id', recipientWalletId)
-    .single();
-
-  if (rErr || !recipientWallet) return { success: false, error: 'Recipient wallet not found' };
-
-  const refId = generateRefId();
-  const newSenderBalance = senderBalance - amount;
-  const newReceiverBalance = Number(recipientWallet.balance) + amount;
-
-  const { data: receiverProfile } = await supabase
-    .from('profiles')
-    .select('full_name, user_id')
-    .eq('user_id', recipientWallet.user_id)
-    .single();
-
-  const receiverName = receiverProfile?.full_name || 'Unknown';
-  const receiverUserId = recipientWallet.user_id;
-
-  // Update both wallets
-  const [senderUpdate, receiverUpdate] = await Promise.all([
-    supabase.from('wallets').update({ balance: newSenderBalance } as any).eq('id', senderWalletId),
-    supabase.from('wallets').update({ balance: newReceiverBalance } as any).eq('id', recipientWalletId),
-  ]);
-
-  if (senderUpdate.error || receiverUpdate.error) {
-    console.error('[Transfer] Wallet update failed:', senderUpdate.error, receiverUpdate.error);
-    return { success: false, error: 'Failed to update wallets' };
+    return result;
+  } catch (error) {
+    console.error('Update transaction error:', error);
+    throw error;
   }
-
-  console.log(`[Transfer] Wallet after: sender KES ${newSenderBalance}, receiver KES ${newReceiverBalance}`);
-
-  // Create transaction records for both users
-  const { error: txErr } = await supabase.from('transactions').insert([
-    {
-      user_id: senderUserId,
-      sender_wallet_id: senderWalletId,
-      receiver_wallet_id: recipientWalletId,
-      type: 'wallet_transfer' as const,
-      amount,
-      status: 'completed' as const,
-      description: `Transfer to ${receiverName}`,
-      reference: refId,
-    },
-    {
-      user_id: receiverUserId,
-      sender_wallet_id: senderWalletId,
-      receiver_wallet_id: recipientWalletId,
-      type: 'wallet_transfer' as const,
-      amount,
-      status: 'completed' as const,
-      description: `Received from ${senderName}`,
-      reference: refId,
-    },
-  ] as any);
-
-  if (txErr) console.error('[Transfer] Transaction insert failed:', txErr);
-
-  // Create M-Pesa style notifications
-  await createTransactionNotifications({
-    refId,
-    senderUserId,
-    senderName,
-    receiverUserId,
-    receiverName,
-    amount,
-    senderNewBalance: newSenderBalance,
-    receiverNewBalance: newReceiverBalance,
-    type: 'wallet_transfer',
-  });
-
-  return { success: true, refId };
 }
 
-// Process deposit (demo mode - instant credit)
-export async function processDeposit({
-  userId,
-  walletId,
-  amount,
-  userName,
-}: {
-  userId: string;
-  walletId: string;
-  amount: number;
-  userName: string;
-}): Promise<{ success: boolean; error?: string; refId?: string }> {
-  if (amount <= 0) return { success: false, error: 'Amount must be greater than zero' };
+// Get user transactions
+export async function getUserTransactions(userId: string, limit = 50, offset = 0) {
+  try {
+    const data = await apiClient
+      .from('transactions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
 
-  const wallet = await getFreshWallet(walletId);
-  if (!wallet) return { success: false, error: 'Failed to load wallet' };
+    if (!data || !Array.isArray(data)) {
+      return [];
+    }
 
-  const currentBalance = Number(wallet.balance);
-  const refId = generateRefId();
-  const newBalance = currentBalance + amount;
-
-  const { error } = await supabase.from('wallets').update({ balance: newBalance } as any).eq('id', walletId);
-  if (error) {
-    console.error('[Deposit] Wallet update failed:', error);
-    return { success: false, error: 'Failed to update wallet' };
+    return data;
+  } catch (error) {
+    console.error('Get transactions error:', error);
+    return [];
   }
-
-  await supabase.from('transactions').insert({
-    user_id: userId,
-    receiver_wallet_id: walletId,
-    type: 'deposit' as const,
-    amount,
-    status: 'completed' as const,
-    description: 'Wallet deposit',
-    reference: refId,
-  } as any);
-
-  await createTransactionNotifications({
-    refId,
-    senderUserId: userId,
-    senderName: userName,
-    amount,
-    senderNewBalance: newBalance,
-    type: 'deposit',
-  });
-
-  return { success: true, refId };
 }
 
-// Process withdrawal (demo mode - instant debit)
-export async function processWithdrawal({
-  userId,
-  walletId,
-  amount,
-  userName,
-  phoneNumber,
-}: {
-  userId: string;
-  walletId: string;
-  amount: number;
-  userName: string;
-  phoneNumber?: string;
-}): Promise<{ success: boolean; error?: string; refId?: string }> {
-  if (amount <= 0) return { success: false, error: 'Amount must be greater than zero' };
+// Create notification
+export async function createNotification(params: {
+  user_id: string;
+  title: string;
+  message: string;
+  type: string;
+  reference?: string;
+  is_read?: boolean;
+}) {
+  try {
+    const result = await apiClient.from('notifications').insert({
+      user_id: params.user_id,
+      title: params.title,
+      message: params.message,
+      type: params.type,
+      reference: params.reference,
+      is_read: params.is_read || false,
+    });
 
-  const wallet = await getFreshWallet(walletId);
-  if (!wallet) return { success: false, error: 'Failed to load wallet' };
+    if (!result) {
+      throw new Error('Failed to create notification');
+    }
 
-  const currentBalance = Number(wallet.balance);
-  if (amount > currentBalance) return { success: false, error: 'Insufficient balance' };
-
-  const refId = generateRefId();
-  const newBalance = currentBalance - amount;
-
-  const { error } = await supabase.from('wallets').update({ balance: newBalance } as any).eq('id', walletId);
-  if (error) {
-    console.error('[Withdraw] Wallet update failed:', error);
-    return { success: false, error: 'Failed to update wallet' };
+    return result;
+  } catch (error) {
+    console.error('Create notification error:', error);
+    throw error;
   }
-
-  await supabase.from('transactions').insert({
-    user_id: userId,
-    sender_wallet_id: walletId,
-    type: 'withdrawal' as const,
-    amount,
-    status: 'completed' as const,
-    description: phoneNumber ? `M-Pesa withdrawal to ${phoneNumber}` : 'Wallet withdrawal',
-    reference: refId,
-    phone_number: phoneNumber || null,
-  } as any);
-
-  await createTransactionNotifications({
-    refId,
-    senderUserId: userId,
-    senderName: userName,
-    amount,
-    senderNewBalance: newBalance,
-    type: 'withdrawal',
-  });
-
-  return { success: true, refId };
 }
 
-// Process M-Pesa-style transactions (paybill, send money, buy goods) in demo mode
-export async function processMpesaTransaction({
-  userId,
-  walletId,
-  amount,
-  userName,
-  type,
-  extra,
-}: {
-  userId: string;
-  walletId: string;
-  amount: number;
-  userName: string;
-  type: 'mpesa_paybill' | 'mpesa_send_money' | 'mpesa_buy_goods';
-  extra: Record<string, string>;
-}): Promise<{ success: boolean; error?: string; refId?: string }> {
-  if (amount <= 0) return { success: false, error: 'Amount must be greater than zero' };
+// Get user notifications
+export async function getUserNotifications(userId: string, unreadOnly = false) {
+  try {
+    let query = apiClient
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
 
-  const wallet = await getFreshWallet(walletId);
-  if (!wallet) return { success: false, error: 'Failed to load wallet' };
+    if (unreadOnly) {
+      query = query.eq('is_read', false);
+    }
 
-  const currentBalance = Number(wallet.balance);
-  if (amount > currentBalance) return { success: false, error: 'Insufficient balance' };
+    const data = await query;
 
-  const refId = generateRefId();
-  const newBalance = currentBalance - amount;
+    if (!data || !Array.isArray(data)) {
+      return [];
+    }
 
-  const { error } = await supabase.from('wallets').update({ balance: newBalance } as any).eq('id', walletId);
-  if (error) {
-    console.error(`[M-Pesa ${type}] Wallet update failed:`, error);
-    return { success: false, error: 'Failed to update wallet' };
+    return data;
+  } catch (error) {
+    console.error('Get notifications error:', error);
+    return [];
   }
+}
 
-  const desc = type === 'mpesa_paybill'
-    ? `Paybill to ${extra.paybill_number} A/C ${extra.account_number}`
-    : type === 'mpesa_send_money'
-    ? `M-Pesa to ${extra.phone_number}`
-    : `Buy Goods at Till ${extra.till_number}`;
+// Mark notification as read
+export async function markNotificationAsRead(notificationId: string) {
+  try {
+    const result = await apiClient
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId);
 
-  await supabase.from('transactions').insert({
-    user_id: userId,
-    sender_wallet_id: walletId,
-    type,
-    amount,
-    status: 'completed' as const,
-    description: desc,
-    reference: refId,
-    ...extra,
-  } as any);
+    return result;
+  } catch (error) {
+    console.error('Mark notification as read error:', error);
+    throw error;
+  }
+}
 
-  // Simulate Daraja API response
-  console.log(`[Daraja Simulation] STK Push: { ResultCode: 0, ResultDesc: "Success", MpesaReceiptNumber: "${refId}", TransactionDate: "${new Date().toISOString()}" }`);
+// Get user profile
+export async function getUserProfile(userId: string) {
+  try {
+    const data = await apiClient
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
 
-  await createTransactionNotifications({
-    refId,
-    senderUserId: userId,
-    senderName: userName,
-    amount,
-    senderNewBalance: newBalance,
-    type,
-  });
+    return data;
+  } catch (error) {
+    console.error('Get user profile error:', error);
+    return null;
+  }
+}
 
-  return { success: true, refId };
+// Update user profile
+export async function updateUserProfile(userId: string, updates: {
+  full_name?: string;
+  username?: string;
+  phone?: string;
+  business_name?: string;
+}) {
+  try {
+    const result = await apiClient
+      .from('profiles')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', userId);
+
+    if (!result) {
+      throw new Error('Failed to update profile');
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Update profile error:', error);
+    throw error;
+  }
 }

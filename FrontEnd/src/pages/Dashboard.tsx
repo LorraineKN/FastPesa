@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,14 +40,20 @@ const Dashboard = () => {
     setLoading(true);
     const [walletRes, txRes, profileRes] = await Promise.all([
       getWalletSnapshot(user!.id),
-      supabase.from('transactions').select('*').eq('user_id', user!.id).order('created_at', { ascending: false }).limit(5),
-      supabase.from('profiles').select('*').eq('user_id', user!.id).single(),
+      apiClient.from('transactions').select('*').eq('user_id', user!.id).order('created_at', { ascending: false }).limit(5),
+      apiClient.from('profiles').select('*').eq('user_id', user!.id).single(),
     ]);
 
     console.log('[Dashboard] Wallet response', walletRes);
     if (walletRes?.wallet) setWallets([walletRes.wallet]);
-    if (txRes.data) setTransactions(txRes.data);
-    if (profileRes.data) setProfile(profileRes.data);
+    
+    // Handle transactions
+    const txData = await txRes;
+    if (txData && Array.isArray(txData)) setTransactions(txData);
+    
+    // Handle profile
+    if (profileRes) setProfile(profileRes);
+    
     setLoading(false);
   };
 

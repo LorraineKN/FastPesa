@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,37 +14,28 @@ const InboxPage = () => {
     if (user) fetchNotifications();
   }, [user]);
 
-  // Realtime subscription
-  useEffect(() => {
-    if (!user) return;
-    const channel = supabase
-      .channel('inbox-notifications')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, (payload) => {
-        setNotifications(prev => [payload.new as any, ...prev]);
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [user]);
-
   const fetchNotifications = async () => {
-    const { data } = await supabase
+    const data = await apiClient
       .from('notifications')
       .select('*')
       .eq('user_id', user!.id)
       .order('created_at', { ascending: false });
-    if (data) setNotifications(data);
+    if (data && Array.isArray(data)) setNotifications(data);
     setLoading(false);
   };
 
   const markAsRead = async (id: string) => {
-    await supabase.from('notifications').update({ is_read: true } as any).eq('id', id);
+    await apiClient.from('notifications').update({ is_read: true }).eq('id', id);
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
   };
 
   const markAllRead = async () => {
     const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
     if (unreadIds.length === 0) return;
-    await supabase.from('notifications').update({ is_read: true } as any).in('id', unreadIds);
+    // Note: Custom API doesn't support 'in' operator, so we'll mark them individually
+    for (const id of unreadIds) {
+      await apiClient.from('notifications').update({ is_read: true }).eq('id', id);
+    }
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
   };
 
