@@ -17,10 +17,10 @@ public class B2BRequest {
         public String Amount;
         public String PartyA ;
         public String PartyB;
-        public String AccountReference ";
+        public String AccountReference ;
         public String Remarks = "B2B Payment";
-        public String QueueTimeOutURL = ;
-        public String ResultURL = ";
+        public String QueueTimeOutURL  ;
+        public String ResultURL;
 
 
         public B2BRequest(String receiverShortcode, long amount) {
