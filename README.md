@@ -1,4 +1,4 @@
-<img width="1920" height="965" alt="Screenshot from 2026-03-29 23-43-28" src="https://github.com/user-attachments/assets/47f04994-2551-4221-b591-e0b38bbf5c73" /># FastPesa
+# FastPesa
 
 ## Project Description (Problem and Solution)
 FastPesa is a fintech solution that allows individuals to access and use their money during emergencies when they cannot use their phones, bank cards, or mobile money services. In situations such as phone theft, dead battery, poor internet connection, or mobile money service downtime, users can still securely access funds and make payments through registered merchants or agents using identity verification methods such as an emergency PIN, OTP, or biometric verification.
