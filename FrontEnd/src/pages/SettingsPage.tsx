@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiClient } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,22 +20,22 @@ const SettingsPage = () => {
   useEffect(() => {
     if (user) {
       Promise.all([
-        apiClient.from('profiles').select('*').eq('user_id', user.id).single(),
-        apiClient.from('wallets').select('*').eq('user_id', user.id).single(),
+        supabase.from('profiles').select('*').eq('user_id', user.id).single(),
+        supabase.from('wallets').select('*').eq('user_id', user.id).single(),
       ]).then(([p, w]) => {
-        if (p) {
-          setProfile(p);
-          setFullName(p.full_name);
-          setPhone(p.phone || '');
+        if (p.data) {
+          setProfile(p.data);
+          setFullName(p.data.full_name);
+          setPhone(p.data.phone || '');
         }
-        if (w) setWallet(w);
+        if (w.data) setWallet(w.data);
       });
     }
   }, [user]);
 
   const handleSave = async () => {
     setLoading(true);
-    const error = await apiClient.from('profiles').update({
+    const { error } = await supabase.from('profiles').update({
       full_name: fullName,
       phone,
     }).eq('user_id', user!.id);

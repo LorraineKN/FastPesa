@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { apiClient } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,30 +38,17 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    try {
-      const [walletRes, txRes, profileRes] = await Promise.all([
-        getWalletSnapshot(user!.id),
-        apiClient.from('transactions').select('*').eq('user_id', user!.id).order('created_at', { ascending: false }).limit(5),
-        apiClient.from('profiles').select('*').eq('user_id', user!.id).single(),
-      ]);
+    const [walletRes, txRes, profileRes] = await Promise.all([
+      getWalletSnapshot(user!.id),
+      supabase.from('transactions').select('*').eq('user_id', user!.id).order('created_at', { ascending: false }).limit(5),
+      supabase.from('profiles').select('*').eq('user_id', user!.id).single(),
+    ]);
 
-      console.log('[Dashboard] Wallet response', walletRes);
-      if (walletRes?.wallet) setWallets([walletRes.wallet]);
-      
-      // Handle transactions
-      const txData = await txRes;
-      if (txData && Array.isArray(txData)) setTransactions(txData);
-      
-      // Handle profile
-      console.log('[Dashboard] Profile response', profileRes);
-      if (profileRes) {
-        setProfile(profileRes);
-      }
-    } catch (error) {
-      console.error('[Dashboard] Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
+    console.log('[Dashboard] Wallet response', walletRes);
+    if (walletRes?.wallet) setWallets([walletRes.wallet]);
+    if (txRes.data) setTransactions(txRes.data);
+    if (profileRes.data) setProfile(profileRes.data);
+    setLoading(false);
   };
 
   const totalBalance = wallets.reduce((sum, w) => sum + Number(w.balance), 0);

@@ -20,7 +20,6 @@ import WithdrawPage from "./pages/WithdrawPage";
 import AboutPage from "./pages/AboutPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
-import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,7 +45,6 @@ const App = () => (
             <Route path="/dashboard/mpesa" element={<ProtectedRoute><DashboardLayout><MpesaPage /></DashboardLayout></ProtectedRoute>} />
             <Route path="/dashboard/transactions" element={<ProtectedRoute><DashboardLayout><Transactions /></DashboardLayout></ProtectedRoute>} />
             <Route path="/dashboard/inbox" element={<ProtectedRoute><DashboardLayout><InboxPage /></DashboardLayout></ProtectedRoute>} />
-            <Route path="/dashboard/profile" element={<ProtectedRoute><DashboardLayout><ProfilePage /></DashboardLayout></ProtectedRoute>} />
             <Route path="/dashboard/settings" element={<ProtectedRoute><DashboardLayout><SettingsPage /></DashboardLayout></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

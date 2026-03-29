@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
 import { DEMO_MODE, simulateB2B, simulateC2B, simulateSTKPush } from '@/lib/mpesaService';
 
 type AccountType = 'personal' | 'business';
@@ -51,11 +51,11 @@ export async function ensureDemoWallet(params: {
   };
 
   logRequest('ensure_demo_wallet', payload);
-  const data = await apiClient.rpc('ensure_demo_wallet', payload);
+  const { data, error } = await supabase.rpc('ensure_demo_wallet', payload);
 
-  if (data.error) {
-    console.error('[Wallet API] ensure_demo_wallet failed', data.error);
-    throw new Error(data.error.message || 'Failed to ensure demo wallet');
+  if (error) {
+    console.error('[Wallet API] ensure_demo_wallet failed', error);
+    throw error;
   }
 
   logResponse('ensure_demo_wallet', data);
@@ -65,11 +65,11 @@ export async function ensureDemoWallet(params: {
 export async function getWalletSnapshot(userId: string) {
   const payload = { p_user_id: userId };
   logRequest('get_wallet_snapshot', payload);
-  const data = await apiClient.rpc('get_wallet_snapshot', payload);
+  const { data, error } = await supabase.rpc('get_wallet_snapshot', payload);
 
-  if (data.error) {
-    console.error('[Wallet API] get_wallet_snapshot failed', data.error);
-    throw new Error(data.error.message || 'Failed to get wallet snapshot');
+  if (error) {
+    console.error('[Wallet API] get_wallet_snapshot failed', error);
+    throw error;
   }
 
   logResponse('get_wallet_snapshot', data);
@@ -84,11 +84,11 @@ export async function depositToWallet(userId: string, amount: number, descriptio
   };
 
   logRequest('process_deposit', payload);
-  const data = await apiClient.rpc('process_deposit', payload);
+  const { data, error } = await supabase.rpc('process_deposit', payload);
 
-  if (data.error) {
-    console.error('[Wallet API] process_deposit failed', data.error);
-    throw new Error(data.error.message || 'Failed to process deposit');
+  if (error) {
+    console.error('[Wallet API] process_deposit failed', error);
+    throw error;
   }
 
   logResponse('process_deposit', data);
@@ -104,11 +104,11 @@ export async function withdrawFromWallet(userId: string, amount: number, phoneNu
   };
 
   logRequest('process_withdrawal', payload);
-  const data = await apiClient.rpc('process_withdrawal', payload);
+  const { data, error } = await supabase.rpc('process_withdrawal', payload);
 
-  if (data.error) {
-    console.error('[Wallet API] process_withdrawal failed', data.error);
-    throw new Error(data.error.message || 'Failed to process withdrawal');
+  if (error) {
+    console.error('[Wallet API] process_withdrawal failed', error);
+    throw error;
   }
 
   logResponse('process_withdrawal', data);
@@ -123,11 +123,11 @@ export async function transferBetweenWallets(senderUserId: string, receiverWalle
   };
 
   logRequest('process_wallet_transfer', payload);
-  const data = await apiClient.rpc('process_wallet_transfer', payload);
+  const { data, error } = await supabase.rpc('process_wallet_transfer', payload);
 
-  if (data.error) {
-    console.error('[Wallet API] process_wallet_transfer failed', data.error);
-    throw new Error(data.error.message || 'Failed to process wallet transfer');
+  if (error) {
+    console.error('[Wallet API] process_wallet_transfer failed', error);
+    throw error;
   }
 
   logResponse('process_wallet_transfer', data);
@@ -138,17 +138,25 @@ export async function resolveWalletByUsername(username: string) {
   const cleanedUsername = username.trim().toLowerCase();
   logRequest('resolve_wallet_by_username', { username: cleanedUsername });
 
-  const profile = await apiClient.from('profiles').select('user_id, full_name, username').eq('username', cleanedUsername).single();
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('user_id, full_name, username')
+    .eq('username', cleanedUsername)
+    .single();
 
-  if (!profile) {
-    console.error('[Wallet API] resolve_wallet_by_username profile lookup failed');
+  if (profileError || !profile) {
+    console.error('[Wallet API] resolve_wallet_by_username profile lookup failed', profileError);
     return null;
   }
 
-  const wallet = await apiClient.from('wallets').select('id, user_id').eq('user_id', profile.user_id).single();
+  const { data: wallet, error: walletError } = await supabase
+    .from('wallets')
+    .select('id, user_id')
+    .eq('user_id', profile.user_id)
+    .single();
 
-  if (!wallet) {
-    console.error('[Wallet API] resolve_wallet_by_username wallet lookup failed');
+  if (walletError || !wallet) {
+    console.error('[Wallet API] resolve_wallet_by_username wallet lookup failed', walletError);
     return null;
   }
 
@@ -187,11 +195,11 @@ export async function processMpesaOperation(params: {
   };
 
   logRequest('process_mpesa_transaction', payload);
-  const data = await apiClient.rpc('process_mpesa_transaction', payload);
+  const { data, error } = await supabase.rpc('process_mpesa_transaction', payload);
 
-  if (data.error) {
-    console.error('[Wallet API] process_mpesa_transaction failed', data.error);
-    throw new Error(data.error.message || 'Failed to process M-Pesa transaction');
+  if (error) {
+    console.error('[Wallet API] process_mpesa_transaction failed', error);
+    throw error;
   }
 
   logResponse('process_mpesa_transaction', data);

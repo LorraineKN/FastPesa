@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiClient } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,18 +15,36 @@ const Transactions = () => {
 
   useEffect(() => {
     if (!user) return;
+
     fetchTransactions();
+
+    const channel = supabase
+      .channel('transactions-history')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'transactions',
+        filter: `user_id=eq.${user.id}`,
+      }, () => {
+        console.log('[Transactions] Realtime update received');
+        fetchTransactions();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const fetchTransactions = async () => {
     console.log('[Transactions] Fetch request', { userId: user?.id });
-    const data = await apiClient
+    const { data } = await supabase
       .from('transactions')
       .select('*')
       .eq('user_id', user!.id)
       .order('created_at', { ascending: false });
     console.log('[Transactions] Fetch response', data);
-    if (data && Array.isArray(data)) setTransactions(data);
+    if (data) setTransactions(data);
     setLoading(false);
   };
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiClient } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,22 +31,18 @@ const Login = () => {
 
     // If not an email, look up by username
     if (!email.includes('@')) {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/rest/v1/public/lookup-username?username=${encodeURIComponent(email.toLowerCase())}`);
-        const data = await response.json();
-        
-        if (!response.ok || data.error) {
-          setLoading(false);
-          toast({ title: 'Login Failed', description: 'Username not found', variant: 'destructive' });
-          return;
-        }
-        
-        email = data.email;
-      } catch (error) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('username', email.toLowerCase())
+        .single();
+
+      if (!profile) {
         setLoading(false);
-        toast({ title: 'Login Failed', description: 'Failed to lookup username', variant: 'destructive' });
+        toast({ title: 'Login Failed', description: 'Username not found', variant: 'destructive' });
         return;
       }
+      email = profile.email;
     }
 
     const { error } = await signIn(email, password);

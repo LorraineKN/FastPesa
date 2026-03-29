@@ -1,21 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { apiClient, type AuthResponse, type LoginResponse } from '@/lib/api';
-import { getWalletSnapshot } from '@/lib/wallet';
-
-interface User {
-  id: string;
-  email: string;
-  user_metadata: {
-    full_name: string;
-    account_type: string;
-    username: string;
-  };
-}
-
-interface Session {
-  access_token: string;
-  user: User;
-}
+import { supabase } from '@/integrations/supabase/client';
+import type { User, Session } from '@supabase/supabase-js';
+import { ensureDemoWallet, getWalletSnapshot } from '@/lib/wallet';
 
 interface AuthContextType {
   user: User | null;
@@ -26,7 +12,6 @@ interface AuthContextType {
   signUp: (email: string, password: string, username: string, fullName: string, accountType: 'personal' | 'business') => Promise<{ error: any; session: Session | null | undefined }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  clearSession: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,136 +21,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Initialize from localStorage
-  useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    const userStr = localStorage.getItem('auth_user');
-    
-    console.log('[Auth] Initializing session, token exists:', !!token);
-    console.log('[Auth] User data exists:', !!userStr);
-    
-    if (token && userStr) {
-      try {
-        const userData = JSON.parse(userStr);
-        console.log('[Auth] Loaded user data:', userData.id);
-        
-        // Validate user data structure
-        if (!userData.id || !userData.email || !userData.user_metadata) {
-          console.warn('[Auth] Invalid user data in localStorage, clearing...');
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('auth_user');
-          setLoading(false);
-          return;
-        }
-        
-        const sessionData: Session = {
-          access_token: token,
-          user: userData
-        };
-        setSession(sessionData);
-        setUser(userData);
-        apiClient.setToken(token);
-        
-        // Load wallet data
-        getWalletSnapshot(userData.id).catch(console.error);
-      } catch (error) {
-        console.error('Failed to parse stored user data:', error);
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_user');
-      }
-    }
-    setLoading(false);
-  }, []);
-
-  const syncSession = (nextSession: Session | null) => {
+  const syncSession = async (nextSession: Session | null) => {
     setSession(nextSession);
     setUser(nextSession?.user ?? null);
 
     if (nextSession?.user) {
-      localStorage.setItem('auth_token', nextSession.access_token);
-      localStorage.setItem('auth_user', JSON.stringify(nextSession.user));
-      apiClient.setToken(nextSession.access_token);
-      
       try {
-        getWalletSnapshot(nextSession.user.id);
+        const walletResponse = await getWalletSnapshot(nextSession.user.id);
+        console.log('[Auth] Wallet restored', walletResponse);
       } catch (error) {
         console.error('[Auth] Failed to restore wallet state', error);
       }
-    } else {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_user');
     }
 
     setLoading(false);
   };
 
-  const signUp = async (email: string, password: string, username: string, fullName: string, accountType: 'personal' | 'business') => {
-    try {
-      const response: AuthResponse = await apiClient.signUp(email, password, username, fullName, accountType);
-      
-      if (response.data?.session) {
-        console.log('[Auth] User registered successfully');
-        syncSession(response.data.session);
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, nextSession) => {
+        console.log('[Auth] State changed', event);
+        void syncSession(nextSession);
       }
+    );
 
-      return { error: response.error, session: response.data?.session };
-    } catch (error: any) {
-      return { error: { message: error.message }, session: null };
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      void syncSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const signUp = async (email: string, password: string, username: string, fullName: string, accountType: 'personal' | 'business') => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: { full_name: fullName, account_type: accountType, username },
+      },
+    });
+
+    if (!error && data.session) {
+      console.log('[Auth] User registered successfully');
+      await ensureDemoWallet({
+        userId: data.session.user.id,
+        fullName,
+        email,
+        username,
+        accountType,
+      });
+      setSession(data.session);
+      setUser(data.session.user);
     }
+
+    return { error, session: data?.session };
   };
 
   const signIn = async (email: string, password: string) => {
     console.log('[Auth] Attempting login', { email });
-    
-    try {
-      const response: LoginResponse = await apiClient.signIn(email, password);
-      
-      if (response.data?.session) {
-        const sessionData: Session = {
-          access_token: response.data.token,
-          user: {
-            id: response.data.user.id,
-            email: response.data.user.email,
-            user_metadata: {
-              full_name: response.data.user.fullName,
-              account_type: response.data.user.accountType,
-              username: response.data.user.username
-            }
-          }
-        };
-        syncSession(sessionData);
-        
-        try {
-          await getWalletSnapshot(response.data.user.id);
-        } catch (error) {
-          console.error('[Auth] Failed to load wallet:', error);
-        }
-      }
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-      return { error: response.error };
-    } catch (error: any) {
-      return { error: { message: error.message } };
+    if (!error && data.session) {
+      await getWalletSnapshot(data.session.user.id);
     }
+
+    return { error };
   };
 
   const signOut = async () => {
     console.log('[Auth] Signing out');
-    try {
-      await apiClient.signOut();
-    } catch (error) {
-      console.error('[Auth] Sign out error:', error);
-    }
-    syncSession(null);
-  };
-
-  // Function to clear all session data (for debugging)
-  const clearSession = () => {
-    console.log('[Auth] Clearing all session data');
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
-    setUser(null);
+    await supabase.auth.signOut();
     setSession(null);
-    apiClient.setToken('');
+    setUser(null);
   };
 
   const value = useMemo(() => ({
@@ -177,7 +105,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signIn,
     signOut,
-    clearSession,
   }), [user, session, loading]);
 
   return (
