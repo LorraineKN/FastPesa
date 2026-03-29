@@ -1,151 +1,104 @@
-# Instant Kenya Aid
+<img width="1920" height="965" alt="Screenshot from 2026-03-29 23-43-28" src="https://github.com/user-attachments/assets/47f04994-2551-4221-b591-e0b38bbf5c73" /># FastPesa
 
-## Description
-Instant Kenya Aid is a digital platform designed to **facilitate emergency aid and donations in Kenya**.  
-It streamlines contributions via mobile payments and provides multi-role access for administrators and users.
+## Project Description (Problem and Solution)
+FastPesa is a fintech solution that allows individuals to access and use their money during emergencies when they cannot use their phones, bank cards, or mobile money services. In situations such as phone theft, dead battery, poor internet connection, or mobile money service downtime, users can still securely access funds and make payments through registered merchants or agents using identity verification methods such as an emergency PIN, OTP, or biometric verification.
 
-**Problem:** Manual and slow processes delay emergency assistance and donations.  
-**Solution:** This app automates aid distribution and payment tracking, ensuring timely support.  
-**Target Users:** Donors, Administrators, and Beneficiaries.
+The platform also enables businesses to accept payments, track transactions, and manage funds through a centralized dashboard. Additionally, it supports minor accounts, allowing parents or guardians to create controlled wallets for students and set spending limits for small essential transactions such as transport or meals.
 
-## Screenshots
-<!-- Add images of key features -->
-![Dashboard](path/to/screenshot1.png)
-![MPesa Payment Flow](path/to/screenshot2.png)
-![User Roles](path/to/screenshot3.png)
+The system acts as a backup financial access solution, ensuring that users and businesses can still complete transactions securely and reliably during emergencies.
 
-## Live Demo
-- Frontend: [Instant Kenya Aid](https://instant-kenya-aid.lovable.app/)  
-- Test accounts:
-  - **User:** user@example.com / Password@123
+---
 
-## About
-Instant Kenya Aid allows:
-- Secure and automated mobile donations via M-Pesa Daraja API
-- Multi-role system for administrators and users
-- Tracking of donations and disbursements in real time
-- Comprehensive backend API for management and reporting
+## Screenshots of Key Features
 
-## Technologies Used
+<img width="1920" height="965" alt="Screenshot from 2026-03-29 23-43-50" src="https://github.com/user-attachments/assets/ff8acafc-d694-4464-b54d-5b10e5cb49eb" />
+<img width="1920" height="965" alt="Screenshot from 2026-03-29 23-43-47" src="https://github.com/user-attachments/assets/5578e257-d8c4-4497-aa14-642bf00e75d0" />
+<img width="1920" height="965" alt="Screenshot from 2026-03-29 23-43-43" src="https://github.com/user-attachments/assets/cf91c26a-9a77-4b99-bc90-775210c14e0c" />
+<img width="1920" height="965" alt="Screenshot from 2026-03-29 23-43-37" src="https://github.com/user-attachments/assets/9b2d8821-cab8-4b84-8490-c8f446d84885" />
+<img width="1920" height="965" alt="Screenshot from 2026-03-29 23-43-28" src="https://github.com/user-attachments/assets/ee5e63b6-88fd-4a79-b407-75a5a288cd02" />
+<img width="1920" height="965" alt="Screenshot from 2026-03-29 23-43-23" src="https://github.com/user-attachments/assets/12fd613e-7261-4057-9da9-9d091dd03978" />
+<img width="1920" height="965" alt="Screenshot from 2026-03-29 23-43-19" src="https://github.com/user-attachments/assets/964238e6-be4d-4157-94c0-86a277f8dd48" />
+<img width="1920" height="965" alt="Screenshot from 2026-03-29 23-42-43" src="https://github.com/user-attachments/assets/e71ccfb2-4a81-475d-9823-cae5e9908b72" />
+<img width="1920" height="965" alt="Screenshot from 2026-03-29 23-33-01" src="https://github.com/user-attachments/assets/242940db-879f-4054-a987-44883fd894b2" />
+### Login Page
+![Login](./screenshots/login<img width="1920" height="965" alt="Screenshot from 2026-03-29 23-43-37" src="https://github.com/user-
+
+
+### Dashboard / Home
+![Dashboard](./screenshots/dashboard.png)
+
+### Deposit Funds
+![Deposit](./screenshots/deposit.png)
+
+### Withdraw Funds
+![Withdraw](./screenshots/withdraw.png)
+
+### M-Pesa Integration
+![M-Pesa](./screenshots/mpesa.png)
+
+### Transaction History
+![Transaction History](./screenshots/history.png)
+
+### Inbox / Notifications
+![Inbox](./screenshots/inbox.png)
+
+### Settings Page
+![Settings](./screenshots/settings.png)
+
+---
+
+## Live Demo (Mandatory)
+**Live URL:** https://instant-kenya-aid.lovable.app  
+**Login:** Demo  
+**Password:** 1234  
+
+---
+
+## About (Purpose and Functionality)
+FastPesa is a financial technology solution designed to provide a secure backup way for individuals to access and use their money during emergencies when they cannot use their phones, bank cards, or mobile money services. The purpose of the platform is to ensure that people can still complete essential transactions such as paying for transport, food, or medical services even in situations like phone theft, dead battery, poor internet connection, or service downtime.
+
+The platform functions by allowing users to link their existing funding sources and access their emergency wallet through registered merchants or agents using secure identity verification methods such as an emergency PIN, OTP, security questions, or biometric verification. The system also allows businesses to accept payments, track transactions, and manage funds through a centralized dashboard. Additionally, the platform supports minor accounts, enabling parents or guardians to create controlled wallets for students and set spending limits for small essential transactions.
+
+Overall, the platform acts as a secure backup financial access system that ensures continuous access to money and payment services during emergencies.
+
+---
+
+## Tools, Technologies and Frameworks Used
+
+| Component | Technology |
+|-----------|------------|
+| Frontend  | Lovable |
+| Backend   | Java Spring Boot |
+| Database  | PostgreSQL |
+| Security  | Spring Security + JWT |
+| Deployment| Docker |
 
 ### Frontend
-- React
-- TailwindCSS
-- Axios
+The frontend was built using **Lovable** to design and develop the user interface, dashboards, and user interaction components.
 
 ### Backend
-- Java 21 / Spring Boot
-- Spring Security
-- Spring Data JPA / Hibernate
+The backend was developed using **Java Spring Boot** to build RESTful APIs that handle user management, wallet operations, transactions, and business payment processing.
 
 ### Database
-- PostgreSQL
+The system uses **PostgreSQL** to store user information, wallet data, transaction records, and business records.
 
-### Tools & APIs
-- M-Pesa Daraja API
-- Swagger for API documentation
-- Docker (optional for deployment)
-- Postman for testing
+### Security
+Security is implemented using **Spring Security** and **JWT (JSON Web Tokens)** for authentication, authorization, and securing API endpoints.
 
-## Collaborators
+### Deployment
+The system is deployed using **Docker** to containerize the backend application and database for consistent deployment.
+
+---
+
+## Team Members and Roles
+
 | Name | Role |
 |------|------|
-| [Your Name] | Project Lead / Backend |
-| [Collaborator 2] | Frontend Developer |
-| [Collaborator 3] | QA / Documentation |
-<!-- Add up to 6 collaborators -->
+| Patrick Githinji | Backend Developer |
+| Akinkunmi Akinsola | Backend Developer |
+| Edwin Mwiti | Frontend Developer |
+| Lorraine Kawira | Database & Documentation |
+| Onyango Tom Obande | System Design & Testing |
+| Morris Tsangilwa David | Project Management & Testing |
 
-## Setup & Running Instructions
-
-### Prerequisites
-- Node.js >= 18
-- Java 21
-- Maven
-- PostgreSQL
-- [Optional] Docker
-
-### Frontend Setup
-```bash
-# Clone the repository
-git clone git@github.com:LorraineKN/FastPesa.git
-cd FastPesa/FrontEnd
-
-# Install dependencies
-npm install
-
-# Run the frontend
-npm run start
-```
-Frontend will be available at: `http://localhost:3000`
-
-### Backend Setup
-```bash
-cd ../backend
-
-# Build the Spring Boot application
-mvn clean install
-
-# Run the application
-mvn spring-boot:run
-```
-Backend API will be available at: `http://localhost:8080/swagger-ui/index.html`
-
-### Environment Variables
-Copy the `.env.example` to `.env` and fill in the details:
-```bash
-cp .env.example .env
-```
-
-**.env Example:**
-```dotenv
-# Database Configuration
-DB_USERNAME=postgres
-DB_PASSWORD=password
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=emergency_wallet
-
-# JWT Configuration
-JWT_SECRET=your-very-secure-secret-key-that-is-at-least-32-characters-long-change-this
-JWT_EXPIRATION=86400000
-
-# M-Pesa Daraja API Configuration
-MPESA_CONSUMER_KEY=your_consumer_key_from_safaricom
-MPESA_CONSUMER_SECRET=your_consumer_secret_from_safaricom
-MPESA_SHORTCODE=174379
-MPESA_PASSKEY=your_passkey_from_safaricom
-MPESA_CALLBACK_URL=https://your-domain.com/api/callbacks/mpesa
-MPESA_STK_CALLBACK_URL=https://your-domain.com/api/callbacks/stk
-
-# Environment: sandbox or production
-MPESA_ENV=sandbox
-
-# Demo Mode: true for simulation, false for real Daraja API
-DEMO_MODE=true
-
-# Server Configuration
-SERVER_PORT=8080
-SERVER_SERVLET_CONTEXT_PATH=/api
-
-# Logging
-LOG_LEVEL=INFO
-```
-
-### API Documentation
-Access full backend documentation here: [Swagger API Docs](https://novaapi.pegien.co.ke/swagger-ui/index.html)
-
-### Running URLs
-- Frontend: `https://instant-kenya-aid.lovable.app/`
-- Backend API: `https://novaapi.pegien.co.ke/swagger-ui/index.html`
-
-## Key Features
-- Multi-role system with Admin and User access
-- Secure payments via M-Pesa Daraja API
-- Real-time donation tracking and reporting
-- Clean and maintainable codebase
-
-## Notes
-- Ensure PostgreSQL is running before starting the backend
-- Test accounts are provided for demo purposes
-- Code is fully commented and follows best practices
-
+---
