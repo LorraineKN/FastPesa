@@ -17,8 +17,7 @@ It streamlines contributions via mobile payments and provides multi-role access 
 ## Live Demo
 - Frontend: [Instant Kenya Aid](https://instant-kenya-aid.lovable.app/)  
 - Test accounts:
-  - **Admin:** admin@example.com / password123
-  - **User:** user@example.com / password123
+  - **User:** user@example.com / Password@123
 
 ## About
 Instant Kenya Aid allows:
@@ -68,14 +67,14 @@ Instant Kenya Aid allows:
 ### Frontend Setup
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/instant-kenya-aid.git
-cd instant-kenya-aid/frontend
+git clone git@github.com:LorraineKN/FastPesa.git
+cd FastPesa/FrontEnd
 
 # Install dependencies
 npm install
 
 # Run the frontend
-npm start
+npm run start
 ```
 Frontend will be available at: `http://localhost:3000`
 
@@ -89,7 +88,7 @@ mvn clean install
 # Run the application
 mvn spring-boot:run
 ```
-Backend API will be available at: `http://localhost:8080/api`
+Backend API will be available at: `http://localhost:8080/swagger-ui/index.html`
 
 ### Environment Variables
 Copy the `.env.example` to `.env` and fill in the details:
@@ -137,7 +136,7 @@ Access full backend documentation here: [Swagger API Docs](https://novaapi.pegie
 
 ### Running URLs
 - Frontend: `https://instant-kenya-aid.lovable.app/`
-- Backend API: `http://localhost:8080/api`
+- Backend API: `https://novaapi.pegien.co.ke/swagger-ui/index.html`
 
 ## Key Features
 - Multi-role system with Admin and User access
