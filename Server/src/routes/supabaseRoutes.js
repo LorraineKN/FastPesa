@@ -1,15 +1,10 @@
 const express = require('express');
 const { supabaseAuthMiddleware } = require('../controllers/supabaseAuthMiddleware');
-const { Pool } = require('pg');
+const { pool } = require('../config/db');
 const logger = require('../utils/logger');
 const Joi = require('joi');
 
 const router = express.Router();
-
-// Database pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/emergency_wallet'
-});
 
 // Validation schemas
 const walletSnapshotSchema = Joi.object({
