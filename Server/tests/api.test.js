@@ -17,7 +17,7 @@ describe('API Endpoints', () => {
     it('should register a new user with valid data', async () => {
       const userData = {
         fullName: 'Test User',
-        username: 'testuser123',
+        username: `testuser${Date.now()}`,
         pin: '1234',
         phoneNumber: '+254712345678'
       };
@@ -61,7 +61,7 @@ describe('API Endpoints', () => {
     it('should reject registration with invalid phone number', async () => {
       const userData = {
         fullName: 'Test User',
-        username: 'testuser789',
+        username: `testuser${Date.now()}`,
         pin: '1234',
         phoneNumber: '123'
       };
@@ -76,7 +76,7 @@ describe('API Endpoints', () => {
         expect.arrayContaining([
           expect.objectContaining({
             field: 'phoneNumber',
-            message: expect.stringContaining('phone number')
+            message: expect.stringContaining('Phone number must be in format')
           })
         ])
       );

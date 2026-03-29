@@ -40,7 +40,6 @@ const seedData = async () => {
       const userResult = await pool.query(
         `INSERT INTO users (id, full_name, username, pin_hash, phone_number, status) 
          VALUES ($1, $2, $3, $4, $5, 'active') 
-         ON CONFLICT (username) DO NOTHING 
          RETURNING id`,
         [userData.id, userData.fullName, userData.username, pinHash, userData.phoneNumber]
       );
@@ -50,8 +49,7 @@ const seedData = async () => {
         
         await pool.query(
           `INSERT INTO wallets (id, user_id, balance, daily_limit, monthly_limit) 
-           VALUES ($1, $2, $3, 5000, 50000) 
-           ON CONFLICT (user_id) DO NOTHING`,
+           VALUES ($1, $2, $3, 5000, 50000)`,
           [generateId(), userId, userData.balance]
         );
 

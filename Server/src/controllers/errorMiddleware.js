@@ -38,6 +38,16 @@ const errorHandler = (err, req, res, next) => {
     error = { status: 401, message };
   }
 
+  // Handle authentication errors
+  if (err.message === 'Invalid credentials' || err.message === 'Username already exists' || err.message === 'Account locked. Contact support.') {
+    error = { status: 401, message: err.message };
+  }
+
+  // Handle 404 errors specifically
+  if (err.message && err.message.includes('not found')) {
+    error = { status: 404, message: err.message };
+  }
+
   const status = error.status || 500;
   const message = process.env.NODE_ENV === 'production' && status === 500 
     ? 'Internal Server Error' 

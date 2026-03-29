@@ -35,7 +35,10 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/pay', paymentRoutes);
 
 // Health check
-app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
+app.get('/health', (req, res) => res.status(200).json({ 
+  status: 'ok', 
+  timestamp: new Date().toISOString() 
+}));
 
 // Error handling (must be last)
 app.use(notFound);

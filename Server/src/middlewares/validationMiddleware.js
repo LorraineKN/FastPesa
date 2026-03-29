@@ -41,7 +41,7 @@ const schemas = {
     fullName: Joi.string().min(2).max(100).required().label('Full name'),
     username: Joi.string().alphanum().min(3).max(30).required().label('Username'),
     pin: Joi.string().pattern(/^\d{4}$/).required().label('PIN must be 4 digits'),
-    phoneNumber: Joi.string().pattern(/^\+?[1-9]\d{1,14}$/).required().label('Phone number')
+    phoneNumber: Joi.string().pattern(/^\+254\d{9}$/).required().label('Phone number must be in format +254712345678')
   }),
   
   login: Joi.object({

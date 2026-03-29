@@ -2,12 +2,12 @@
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-secret-key';
 process.env.DB_HOST = 'localhost';
-process.env.DB_PORT = '5432';
-process.env.DB_USER = 'test_user';
-process.env.DB_PASSWORD = 'test_password';
-process.env.DB_NAME = 'test_emergency_wallet';
+process.env.DB_PORT = '5433';
+process.env.DB_USER = 'emergency_user';
+process.env.DB_PASSWORD = '1223';
+process.env.DB_NAME = 'emergency_wallet';
 process.env.REDIS_HOST = 'localhost';
-process.env.REDIS_PORT = '6379';
+process.env.REDIS_PORT = '6380';
 
 // Mock console methods to reduce noise in tests
 global.console = {
