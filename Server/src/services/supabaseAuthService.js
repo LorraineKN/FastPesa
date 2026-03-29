@@ -1,24 +1,8 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { createClient } = require('@supabase/supabase-js');
 const logger = require('../utils/logger');
-const { Pool } = require('pg');
-
-// Initialize Supabase client
-const supabaseUrl = process.env.SUPABASE_URL || 'http://localhost:54321';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'your-service-key';
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-});
-
-// Database pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/emergency_wallet'
-});
+const { pool } = require('../config/db');
+const { v4: uuidv4 } = require('uuid');
 
 /**
  * Generate JWT token compatible with Supabase
@@ -41,7 +25,7 @@ const generateSupabaseToken = (user) => {
     }
   };
 
-  const jwtSecret = process.env.SUPABASE_JWT_SECRET || process.env.JWT_SECRET || 'your-secret-key';
+  const jwtSecret = process.env.JWT_SECRET || 'super-secret-jwt-key-change-me';
   return jwt.sign(payload, jwtSecret);
 };
 
@@ -62,32 +46,30 @@ const registerUser = async (email, password, fullName, username, accountType = '
       throw new Error('User with this email or username already exists');
     }
 
-    // Create user in Supabase auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        full_name: fullName,
-        account_type: accountType,
-        username
-      }
-    });
+    // Hash password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    if (authError) {
-      logger.error('Supabase auth error:', authError);
-      throw new Error('Failed to create user in authentication system');
-    }
+    // Generate user ID
+    const userId = uuidv4();
 
     // Create profile in our database
     const profileQuery = await pool.query(
       `INSERT INTO profiles (user_id, email, full_name, username, account_type, is_verified)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [authData.user.id, email, fullName, username, accountType, false]
+      [userId, email, fullName, username, accountType, false]
     );
 
     const profile = profileQuery.rows[0];
+
+    // Store password in legacy_users table for compatibility
+    await pool.query(
+      `INSERT INTO legacy_users (id, email, password_hash, created_at)
+       VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash`,
+      [userId, email, hashedPassword]
+    );
 
     // Create user role
     await pool.query(
@@ -95,8 +77,8 @@ const registerUser = async (email, password, fullName, username, accountType = '
       [profile.user_id, 'user']
     );
 
-    // Ensure demo wallet is created
-    await pool.query('SELECT * FROM ensure_demo_wallet($1, $2, $3, $4, $5)', [
+    // Ensure demo wallet is created (this will create the wallet with demo funds)
+    const walletResult = await pool.query('SELECT * FROM ensure_demo_wallet($1, $2, $3, $4, $5)', [
       profile.user_id,
       fullName,
       email,
@@ -126,7 +108,15 @@ const registerUser = async (email, password, fullName, username, accountType = '
       token,
       session: {
         access_token: token,
-        user: authData.user
+        user: {
+          id: profile.user_id,
+          email: profile.email,
+          user_metadata: {
+            full_name: profile.full_name,
+            account_type: profile.account_type,
+            username: profile.username
+          }
+        }
       }
     };
   } catch (error) {
@@ -142,21 +132,28 @@ const loginUser = async (email, password) => {
   try {
     logger.info(`User login attempt: ${email}`);
 
-    // Authenticate with Supabase
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+    // Get user from legacy_users table
+    const userQuery = await pool.query(
+      'SELECT * FROM legacy_users WHERE email = $1',
+      [email]
+    );
 
-    if (authError) {
-      logger.error('Supabase login error:', authError);
+    if (userQuery.rows.length === 0) {
+      throw new Error('Invalid email or password');
+    }
+
+    const user = userQuery.rows[0];
+
+    // Verify password
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    if (!isValidPassword) {
       throw new Error('Invalid email or password');
     }
 
     // Get user profile
     const profileQuery = await pool.query(
       'SELECT * FROM profiles WHERE user_id = $1',
-      [authData.user.id]
+      [user.id]
     );
 
     if (profileQuery.rows.length === 0) {
@@ -185,7 +182,18 @@ const loginUser = async (email, password) => {
         accountType: profile.account_type
       },
       token,
-      session: authData.session
+      session: {
+        access_token: token,
+        user: {
+          id: profile.user_id,
+          email: profile.email,
+          user_metadata: {
+            full_name: profile.full_name,
+            account_type: profile.account_type,
+            username: profile.username
+          }
+        }
+      }
     };
   } catch (error) {
     logger.error('Login error:', error);
@@ -198,13 +206,7 @@ const loginUser = async (email, password) => {
  */
 const logoutUser = async (token) => {
   try {
-    // For Supabase, we can revoke the session
-    const { error } = await supabase.auth.admin.signOut(token);
-    
-    if (error) {
-      logger.error('Logout error:', error);
-    }
-
+    // For local auth, we can implement token blacklisting if needed
     logger.info('User logged out successfully');
     return { success: true };
   } catch (error) {
@@ -218,18 +220,45 @@ const logoutUser = async (token) => {
  */
 const refreshToken = async (refreshToken) => {
   try {
-    const { data, error } = await supabase.auth.refreshSession({
-      refresh_token: refreshToken
-    });
+    // For local auth, verify the existing token and issue a new one
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET || 'super-secret-jwt-key-change-me');
+    
+    // Get user profile
+    const profileQuery = await pool.query(
+      'SELECT * FROM profiles WHERE user_id = $1',
+      [decoded.sub]
+    );
 
-    if (error) {
-      throw new Error('Failed to refresh token');
+    if (profileQuery.rows.length === 0) {
+      throw new Error('User not found');
     }
 
-    return data;
+    const profile = profileQuery.rows[0];
+
+    // Generate new token
+    const token = generateSupabaseToken({
+      id: profile.user_id,
+      email: profile.email,
+      full_name: profile.full_name,
+      account_type: profile.account_type,
+      username: profile.username
+    });
+
+    return {
+      access_token: token,
+      user: {
+        id: profile.user_id,
+        email: profile.email,
+        user_metadata: {
+          full_name: profile.full_name,
+          account_type: profile.account_type,
+          username: profile.username
+        }
+      }
+    };
   } catch (error) {
     logger.error('Token refresh error:', error);
-    throw error;
+    throw new Error('Failed to refresh token');
   }
 };
 
@@ -279,6 +308,5 @@ module.exports = {
   logoutUser,
   refreshToken,
   getUserById,
-  generateSupabaseToken,
-  supabase
+  generateSupabaseToken
 };

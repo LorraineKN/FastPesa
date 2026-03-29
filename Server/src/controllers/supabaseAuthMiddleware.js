@@ -1,23 +1,6 @@
 const jwt = require('jsonwebtoken');
-const { createClient } = require('@supabase/supabase-js');
 const logger = require('../utils/logger');
-const { Pool } = require('pg');
-
-// Initialize Supabase client
-const supabaseUrl = process.env.SUPABASE_URL || 'http://localhost:54321';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'your-service-key';
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-});
-
-// Database pool for direct queries
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/emergency_wallet'
-});
+const { pool } = require('../config/db');
 
 /**
  * Middleware to verify Supabase JWT tokens and extract user information
@@ -124,6 +107,5 @@ const authMiddleware = supabaseAuthMiddleware;
 module.exports = {
   supabaseAuthMiddleware,
   authMiddleware,
-  requireRole,
-  supabase
+  requireRole
 };

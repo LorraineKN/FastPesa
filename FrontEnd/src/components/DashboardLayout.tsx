@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Wallet, Home, ArrowLeftRight, History, Settings, LogOut, Menu, CreditCard, Bell, Plus, Minus } from 'lucide-react';
+import { Wallet, Home, ArrowLeftRight, History, Settings, LogOut, Menu, CreditCard, Bell, Plus, Minus, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface DashboardLayoutProps {
@@ -17,6 +17,7 @@ const navItems = [
   { path: '/dashboard/mpesa', label: 'M-Pesa', icon: CreditCard },
   { path: '/dashboard/transactions', label: 'History', icon: History },
   { path: '/dashboard/inbox', label: 'Inbox', icon: Bell },
+  { path: '/dashboard/profile', label: 'Profile', icon: User },
   { path: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
 
