@@ -31,14 +31,22 @@ const Login = () => {
 
     // If not an email, look up by username
     if (!email.includes('@')) {
-      const profile = await apiClient.from('profiles').select('email').eq('username', email.toLowerCase());
-
-      if (!profile) {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/rest/v1/public/lookup-username?username=${encodeURIComponent(email.toLowerCase())}`);
+        const data = await response.json();
+        
+        if (!response.ok || data.error) {
+          setLoading(false);
+          toast({ title: 'Login Failed', description: 'Username not found', variant: 'destructive' });
+          return;
+        }
+        
+        email = data.email;
+      } catch (error) {
         setLoading(false);
-        toast({ title: 'Login Failed', description: 'Username not found', variant: 'destructive' });
+        toast({ title: 'Login Failed', description: 'Failed to lookup username', variant: 'destructive' });
         return;
       }
-      email = profile.data?.[0]?.email || email;
     }
 
     const { error } = await signIn(email, password);

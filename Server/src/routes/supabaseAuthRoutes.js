@@ -125,7 +125,8 @@ router.post('/signup', async (req, res) => {
             username: result.user.username
           }
         },
-        session: result.session
+        session: result.session,
+        token: result.token
       }
     });
   } catch (error) {

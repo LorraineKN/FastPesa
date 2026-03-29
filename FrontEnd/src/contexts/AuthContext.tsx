@@ -58,15 +58,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
         
-        // Check if user ID matches the old problematic one
-        if (userData.id === '064bba2a-3eb8-4cb9-b91c-e295c1052392') {
-          console.warn('[Auth] Detected old problematic user ID, forcing re-authentication...');
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('auth_user');
-          setLoading(false);
-          return;
-        }
-        
         const sessionData: Session = {
           access_token: token,
           user: userData

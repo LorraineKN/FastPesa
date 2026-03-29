@@ -225,7 +225,7 @@ class SupabaseStyleTableClient {
   }
 
   single() {
-    return this.executeRequest().then(data => data.data?.[0] || null);
+    return this.executeRequest().then(data => Array.isArray(data) ? data[0] || null : data);
   }
 
   then(resolve: any, reject?: any) {

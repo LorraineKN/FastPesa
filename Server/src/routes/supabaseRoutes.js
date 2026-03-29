@@ -215,27 +215,33 @@ router.post('/rpc/process_mpesa_transaction', supabaseAuthMiddleware, async (req
 });
 
 /**
- * REST endpoint: Get transactions for a user
+ * REST endpoint: Get transactions for a user (deprecated - use the Supabase-style one below)
  */
-router.get('/transactions', supabaseAuthMiddleware, async (req, res) => {
-  try {
-    const { limit = 10, offset = 0 } = req.query;
-    
-    const transactionsQuery = await pool.query(
-      `SELECT * FROM transactions 
-       WHERE user_id = $1 
-       ORDER BY created_at DESC 
-       LIMIT $2 OFFSET $3`,
-      [req.user.id, parseInt(limit), parseInt(offset)]
-    );
 
-    res.json({
-      data: transactionsQuery.rows,
-      count: transactionsQuery.rowCount
-    });
+/**
+ * Public endpoint: Get user email by username (for login)
+ */
+router.get('/public/lookup-username', async (req, res) => {
+  try {
+    const { username } = req.query;
+    
+    if (!username) {
+      return res.status(400).json({ error: 'Username is required' });
+    }
+    
+    const profileQuery = await pool.query(
+      'SELECT email FROM profiles WHERE username = $1',
+      [username.toLowerCase()]
+    );
+    
+    if (profileQuery.rows.length === 0) {
+      return res.status(404).json({ error: 'Username not found' });
+    }
+    
+    res.json({ email: profileQuery.rows[0].email });
   } catch (error) {
-    logger.error('get transactions error:', error);
-    res.status(500).json({ error: 'Failed to get transactions' });
+    logger.error('Public username lookup error:', error);
+    res.status(500).json({ error: 'Failed to lookup username' });
   }
 });
 
@@ -275,13 +281,13 @@ router.get('/profiles', supabaseAuthMiddleware, async (req, res) => {
     
     if (user_id) {
       query += ` WHERE user_id = $${paramIndex}`;
-      params.push(user_id);
+      params.push(parseFilterValue(user_id));
       paramIndex++;
     }
     
     if (username) {
       query += user_id ? ` AND username = $${paramIndex}` : ` WHERE username = $${paramIndex}`;
-      params.push(username);
+      params.push(parseFilterValue(username));
       paramIndex++;
     }
     
@@ -355,7 +361,7 @@ router.get('/wallets', supabaseAuthMiddleware, async (req, res) => {
     
     if (user_id) {
       query += ` WHERE user_id = $${paramIndex}`;
-      params.push(user_id);
+      params.push(parseFilterValue(user_id));
       paramIndex++;
     }
     
@@ -382,7 +388,7 @@ router.get('/transactions', supabaseAuthMiddleware, async (req, res) => {
     
     if (user_id) {
       query += ` WHERE user_id = $${paramIndex}`;
-      params.push(user_id);
+      params.push(parseFilterValue(user_id));
       paramIndex++;
     }
     
@@ -390,7 +396,7 @@ router.get('/transactions', supabaseAuthMiddleware, async (req, res) => {
     params.push(parseInt(limit), parseInt(offset));
     
     const transactionsQuery = await pool.query(query, params);
-    const countQuery = await pool.query('SELECT COUNT(*) FROM transactions' + (user_id ? ` WHERE user_id = $1` : ''), user_id ? [user_id] : []);
+    const countQuery = await pool.query('SELECT COUNT(*) FROM transactions' + (user_id ? ` WHERE user_id = $1` : ''), user_id ? [parseFilterValue(user_id)] : []);
 
     res.json({
       data: transactionsQuery.rows,
@@ -401,6 +407,17 @@ router.get('/transactions', supabaseAuthMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Failed to get transactions' });
   }
 });
+
+/**
+ * Helper function to parse Supabase-style filter values
+ * Handles format: eq.value → value
+ */
+const parseFilterValue = (value) => {
+  if (typeof value === 'string' && value.startsWith('eq.')) {
+    return value.substring(3); // Remove 'eq.' prefix
+  }
+  return value;
+};
 
 /**
  * REST endpoint: Get notifications (Supabase-style)
@@ -417,13 +434,13 @@ router.get('/notifications', supabaseAuthMiddleware, async (req, res) => {
     
     if (user_id) {
       query += ` WHERE user_id = $${paramIndex}`;
-      params.push(user_id);
+      params.push(parseFilterValue(user_id));
       paramIndex++;
     }
     
     if (is_read !== undefined) {
       query += user_id ? ` AND is_read = $${paramIndex}` : ` WHERE is_read = $${paramIndex}`;
-      params.push(is_read === 'true');
+      params.push(parseFilterValue(is_read) === 'true');
       paramIndex++;
     }
     
